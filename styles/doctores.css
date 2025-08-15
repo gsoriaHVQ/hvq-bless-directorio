@@ -1,0 +1,11 @@
+/* Estilo para letras deshabilitadas */
+.letter-filter.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f3f4f6;
+  color: #9ca3af;
+}
+
+.letter-filter.disabled:hover {
+  background-color: #f3f4f6;
+}
