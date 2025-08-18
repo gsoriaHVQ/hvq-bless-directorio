@@ -38,17 +38,27 @@ export default function DoctorSearchPage() {
   }, [])
 
   const filteredDoctors = useMemo(() => {
-    const source = doctors.map((d: any) => ({
-      id: String(d.id ?? d.codigo ?? d.codigo_prestador ?? d.codigoPrestador ?? ''),
-      name: String(d.nombres ?? d.nombre ?? ''),
-      specialtyId: String(
-        Array.isArray(d.especialidades) && d.especialidades.length > 0
-          ? d.especialidades[0]
-          : d.especialidadId ?? d.especialidad ?? ''
-      ),
-      photo: d.retrato ?? d.foto ?? null
-    }))
-    if (!searchTerm) return source.slice(0, 12)
+    const source = doctors.map((d: any) => {
+      const rawFirstSpec = Array.isArray(d.especialidades) && d.especialidades.length > 0 ? d.especialidades[0] : null
+      const specialtyId = String(
+        rawFirstSpec && typeof rawFirstSpec === 'object' && 'especialidadId' in rawFirstSpec
+          ? (rawFirstSpec as any).especialidadId
+          : rawFirstSpec ?? d.especialidadId ?? d.especialidad ?? ''
+      )
+      const specialtyName = String(
+        rawFirstSpec && typeof rawFirstSpec === 'object' && 'descripcion' in rawFirstSpec
+          ? (rawFirstSpec as any).descripcion
+          : specialtyId
+      )
+      return {
+        id: String(d.id ?? d.codigo ?? d.codigo_prestador ?? d.codigoPrestador ?? ''),
+        name: String(d.nombres ?? d.nombre ?? ''),
+        specialtyId,
+        specialtyName,
+        photo: d.retrato ?? d.foto ?? null
+      }
+    })
+    if (!searchTerm) return source
     const q = searchTerm.toLowerCase()
     return source.filter((doctor) => doctor.name.toLowerCase().includes(q))
   }, [doctors, searchTerm])
@@ -101,7 +111,7 @@ export default function DoctorSearchPage() {
             <DoctorCard
               key={doctor.id}
               doctor={doctor}
-              specialtyName={doctor.specialtyId}
+              specialtyName={doctor.specialtyName}
               basePath={`/specialties/${getSpecialtySlug(doctor.specialtyId)}`}
             />
           ))
