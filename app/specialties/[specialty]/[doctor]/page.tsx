@@ -9,6 +9,7 @@ import { DoorOpenIcon, BuildingIcon, CalendarCheckIcon } from 'lucide-react'
 import { InteractiveMap } from "@/components/interactive-map"
 import axios from "axios"
 import { getAccessToken } from "../../../api/auth/auth"
+import { apiService } from "@/lib/api-service"
 
 interface DoctorSchedule {
   time: string
@@ -33,7 +34,7 @@ interface SchedulePageProps {
 }
 
 export default function SchedulePage({ params }: SchedulePageProps) {
-  const { doctor: doctorSlug, specialty: specialtySlug } = params
+  const { doctor: doctorParam, specialty: specialtyParam } = params
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null)
   const [doctorSchedules, setDoctorSchedules] = useState<Record<string, DoctorSchedule> | null>(null)
   const [loading, setLoading] = useState(true)
@@ -57,46 +58,69 @@ export default function SchedulePage({ params }: SchedulePageProps) {
         setLoading(true)
         const token = await getAccessToken()
 
-        // 1. Obtener todas las especialidades para encontrar el ID real
-        const specialtiesResponse = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
-          headers: {
-            'Authorization': `Bearer ${token}`
+        const fetchJson = async (url: string) => {
+          const res = await fetch(url, { cache: 'no-store' })
+          if (!res.ok) {
+            const text = await res.text().catch(() => '')
+            throw new Error(`HTTP ${res.status} ${res.statusText} al pedir ${url}. Respuesta: ${text.slice(0, 120)}`)
           }
-        })
-
-        const specialtiesData = specialtiesResponse.data
-        const foundSpecialty = specialtiesData.find((spec: any) => 
-          spec.descripcion?.toLowerCase().replace(/\s+/g, '-') === specialtySlug
-        )
-
-        if (!foundSpecialty) {
-          throw new Error('Especialidad no encontrada')
+          const contentType = res.headers.get('content-type') || ''
+          const text = await res.text()
+          if (!contentType.includes('application/json')) {
+            throw new Error(`Respuesta no JSON desde ${url}: ${text.slice(0, 120)}`)
+          }
+          try {
+            return JSON.parse(text)
+          } catch (e) {
+            throw new Error(`JSON inválido desde ${url}: ${(e as Error).message}`)
+          }
         }
 
-        // 2. Obtener todos los médicos de esa especialidad
-        const doctorsResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/especialidad/${foundSpecialty.especialidadId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-
-        const doctorsData = doctorsResponse.data
-        const foundDoctor = doctorsData.find((doc: any) => 
-          doc.nombres?.toLowerCase().replace(/\s+/g, '-') === doctorSlug
-        )
-
-        if (!foundDoctor) {
-          throw new Error('Médico no encontrado')
+        // 1. Resolver especialidad por ID (si el parámetro es numérico) o por slug (fallback)
+        const isSpecialtyId = /^\d+$/.test(specialtyParam)
+        let foundSpecialty: any
+        if (isSpecialtyId) {
+          const specialtyResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/especialidades/${specialtyParam}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          foundSpecialty = specialtyResponse.data
+        } else {
+          const specialtiesResponse = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          const specialtiesData = specialtiesResponse.data
+          foundSpecialty = specialtiesData.find((spec: any) =>
+            spec.descripcion?.toLowerCase().replace(/\s+/g, '-') === specialtyParam
+          )
         }
 
-        // 3. Obtener información detallada del médico
-        const doctorDetailResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${foundDoctor.id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
+        if (!foundSpecialty) throw new Error('Especialidad no encontrada')
 
-        const doctorData = doctorDetailResponse.data
+        // 2. Resolver médico por ID (si el parámetro es numérico) o por slug (fallback)
+        const isDoctorId = /^\d+$/.test(doctorParam)
+        let doctorData: any
+        let doctorIdToUse: number
+        if (isDoctorId) {
+          const doctorDetailResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${doctorParam}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          doctorData = doctorDetailResponse.data
+          doctorIdToUse = doctorData.id
+        } else {
+          const doctorsResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/especialidad/${foundSpecialty.especialidadId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          const doctorsData = doctorsResponse.data
+          const foundDoctor = doctorsData.find((doc: any) =>
+            doc.nombres?.toLowerCase().replace(/\s+/g, '-') === doctorParam
+          )
+          if (!foundDoctor) throw new Error('Médico no encontrado')
+          const doctorDetailResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${foundDoctor.id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          doctorData = doctorDetailResponse.data
+          doctorIdToUse = foundDoctor.id
+        }
 
         // 4. Configurar información del médico
         setDoctorInfo({
@@ -107,43 +131,64 @@ export default function SchedulePage({ params }: SchedulePageProps) {
           photo: doctorData.retrato
         })
 
-        // 5. Obtener horarios disponibles para el médico
-        const schedulesResponse = await axios.get('http://10.129.180.161:36560/api3/v1/turno/dia', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          params: {
-            especialidadId: foundSpecialty.especialidadId,
-            medicoId: foundDoctor.id
-          }
-        })
+        // 3. Construir horarios desde endpoints de agendas y catálogos
+        const providerId = doctorData.codigoPrestador ?? doctorData.codigo_prestador ?? doctorIdToUse
 
-        // Procesar los horarios según la estructura de TurnoDisponibilidad
-        const formattedSchedules: Record<string, DoctorSchedule> = {}
-        
-        if (schedulesResponse.data?.disponibilidad) {
-          schedulesResponse.data.disponibilidad.forEach((turno: any) => {
-            try {
-              const date = new Date(turno.horario)
-              const day = date.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase()
-              
-              if (daysOfWeek.includes(day)) {
-                formattedSchedules[day] = {
-                  time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-                  room: turno.recurso?.centralResourceDescription || 'Consultorio no asignado',
-                  building: turno.recurso?.resourceType === 'EDIFICIO' 
-                    ? turno.recurso.centralResourceDescription 
-                    : 'Edificio Principal',
-                  floor: turno.recurso?.resourceType === 'PISO' 
-                    ? turno.recurso.centralResourceDescription 
-                    : undefined
-                }
-              }
-            } catch (e) {
-              console.error('Error procesando horario:', turno.horario, e)
-            }
+        // Agendas desde backend real
+        let agendasData: any[] = []
+        const byProv = await apiService.getAgendasByProvider(String(providerId))
+        if (byProv.success && Array.isArray(byProv.data)) {
+          agendasData = byProv.data as any[]
+        } else {
+          const all = await apiService.getAgendas()
+          const list = all.success && Array.isArray(all.data) ? (all.data as any[]) : []
+          agendasData = list.filter((a: any) => {
+            const prestador = a.prestadorId ?? a.medicoId ?? a.codigoPrestador ?? a.codigo_prestador
+            return String(prestador ?? '') === String(providerId)
           })
         }
+
+        // Catálogos desde backend real
+        const [consRes, diasRes] = await Promise.all([
+          apiService.getConsultorios(),
+          apiService.getDays()
+        ])
+        const consultorios = Array.isArray(consRes.data) ? (consRes.data as any[]) : []
+        const diasCatalog = Array.isArray(diasRes.data) ? (diasRes.data as any[]) : []
+
+        const consultorioPorCodigo: Record<string, any> = {}
+        consultorios.forEach((c: any) => {
+          const code = String(c.codigo ?? c.id ?? '')
+          if (code) consultorioPorCodigo[code] = c
+        })
+
+        const diaNombrePorCodigo: Record<string, string> = {}
+        diasCatalog.forEach((d: any) => {
+          const code = String(d.codigo ?? d.id ?? '')
+          const name = String(d.nombre ?? d.descripcion ?? d.name ?? '')
+          if (code) diaNombrePorCodigo[code] = name
+        })
+
+        const formattedSchedules: Record<string, DoctorSchedule> = {}
+        agendasData.forEach((a: any) => {
+          const diaCode = String(a.dia ?? a.diaCodigo ?? a.dia_id ?? '')
+          const diaNombre = diaNombrePorCodigo[diaCode]
+          if (!diaNombre) return
+
+          const consultorioCode = String(a.consultorio ?? a.consultorioCodigo ?? a.consultorio_id ?? '')
+          const cons = consultorioPorCodigo[consultorioCode]
+
+          const time = a.hora ?? a.horario ?? a.horaInicio ?? ''
+          const dayKey = diaNombre.toLowerCase()
+          if (!daysOfWeek.includes(dayKey)) return
+
+          formattedSchedules[dayKey] = {
+            time: String(time),
+            room: (cons?.nombre ?? cons?.descripcion ?? consultorioCode) || 'Consultorio no asignado',
+            building: cons?.edificio ?? 'Edificio Principal',
+            floor: cons?.piso ?? undefined,
+          }
+        })
 
         setDoctorSchedules(formattedSchedules)
         setLoading(false)
@@ -155,7 +200,7 @@ export default function SchedulePage({ params }: SchedulePageProps) {
     }
 
     fetchData()
-  }, [doctorSlug, specialtySlug])
+  }, [doctorParam, specialtyParam])
 
   if (loading) {
     return (

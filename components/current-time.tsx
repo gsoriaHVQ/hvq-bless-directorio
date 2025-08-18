@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge"
 
 export function CurrentTime() {
   const [time, setTime] = useState(new Date())
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const timer = setInterval(() => {
       setTime(new Date())
     }, 1000)
@@ -23,8 +25,8 @@ export function CurrentTime() {
   })
 
   return (
-    <Badge className="bg-accent1 text-primary-foreground text-xl px-4 py-2 rounded-full shadow-md">
-      {formattedTime}
+    <Badge suppressHydrationWarning className="bg-accent1 text-primary-foreground text-xl px-4 py-2 rounded-full shadow-md">
+      {mounted ? formattedTime : ""}
     </Badge>
   )
 }
