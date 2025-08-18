@@ -1,10 +1,11 @@
 "use client"
 
+import React from "react"
 import { DirectorioLayout } from "@/components/directorio-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import "@/styles/pages.css"
 import { notFound } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { DoorOpenIcon, BuildingIcon, CalendarCheckIcon } from 'lucide-react' 
 import { InteractiveMap } from "@/components/interactive-map"
 import axios from "axios"
@@ -16,6 +17,7 @@ interface DoctorSchedule {
   room: string
   building: string
   floor?: string
+  tipo?: string
 }
 
 interface DoctorInfo {
@@ -27,14 +29,14 @@ interface DoctorInfo {
 }
 
 interface SchedulePageProps {
-  params: {
+  params: Promise<{
     specialty: string
     doctor: string
-  }
+  }>
 }
 
 export default function SchedulePage({ params }: SchedulePageProps) {
-  const { doctor: doctorParam, specialty: specialtyParam } = params
+  const { doctor: doctorParam, specialty: specialtyParam } = React.use(params)
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null)
   const [doctorSchedules, setDoctorSchedules] = useState<Record<string, DoctorSchedule> | null>(null)
   const [loading, setLoading] = useState(true)
@@ -50,6 +52,22 @@ export default function SchedulePage({ params }: SchedulePageProps) {
     friday: "Viernes",
     saturday: "Sábado",
     sunday: "Domingo",
+  }
+
+  const normalizeDayKey = (nameOrKey: string) => {
+    const key = (nameOrKey || '').toLowerCase()
+    const map: Record<string, string> = {
+      lunes: 'monday',
+      martes: 'tuesday',
+      miércoles: 'wednesday',
+      miercoles: 'wednesday',
+      jueves: 'thursday',
+      viernes: 'friday',
+      sábado: 'saturday',
+      sabado: 'saturday',
+      domingo: 'sunday',
+    }
+    return map[key] || key
   }
 
   useEffect(() => {
@@ -131,62 +149,26 @@ export default function SchedulePage({ params }: SchedulePageProps) {
           photo: doctorData.retrato
         })
 
-        // 3. Construir horarios desde endpoints de agendas y catálogos
+        // 3. Construir horarios con el método de orquestación (según reglas solicitadas)
         const providerId = doctorData.codigoPrestador ?? doctorData.codigo_prestador ?? doctorIdToUse
-
-        // Agendas desde backend real
-        let agendasData: any[] = []
-        const byProv = await apiService.getAgendasByProvider(String(providerId))
-        if (byProv.success && Array.isArray(byProv.data)) {
-          agendasData = byProv.data as any[]
-        } else {
-          const all = await apiService.getAgendas()
-          const list = all.success && Array.isArray(all.data) ? (all.data as any[]) : []
-          agendasData = list.filter((a: any) => {
-            const prestador = a.prestadorId ?? a.medicoId ?? a.codigoPrestador ?? a.codigo_prestador
-            return String(prestador ?? '') === String(providerId)
-          })
-        }
-
-        // Catálogos desde backend real
-        const [consRes, diasRes] = await Promise.all([
-          apiService.getConsultorios(),
-          apiService.getDays()
-        ])
-        const consultorios = Array.isArray(consRes.data) ? (consRes.data as any[]) : []
-        const diasCatalog = Array.isArray(diasRes.data) ? (diasRes.data as any[]) : []
-
-        const consultorioPorCodigo: Record<string, any> = {}
-        consultorios.forEach((c: any) => {
-          const code = String(c.codigo ?? c.id ?? '')
-          if (code) consultorioPorCodigo[code] = c
-        })
-
-        const diaNombrePorCodigo: Record<string, string> = {}
-        diasCatalog.forEach((d: any) => {
-          const code = String(d.codigo ?? d.id ?? '')
-          const name = String(d.nombre ?? d.descripcion ?? d.name ?? '')
-          if (code) diaNombrePorCodigo[code] = name
-        })
+        const detalladasRes = await apiService.getAgendasDetalladasPorMedico(String(providerId))
+        const detalladas = Array.isArray(detalladasRes.data)
+          ? (detalladasRes.data as any[])
+          : []
 
         const formattedSchedules: Record<string, DoctorSchedule> = {}
-        agendasData.forEach((a: any) => {
-          const diaCode = String(a.dia ?? a.diaCodigo ?? a.dia_id ?? '')
-          const diaNombre = diaNombrePorCodigo[diaCode]
-          if (!diaNombre) return
-
-          const consultorioCode = String(a.consultorio ?? a.consultorioCodigo ?? a.consultorio_id ?? '')
-          const cons = consultorioPorCodigo[consultorioCode]
-
-          const time = a.hora ?? a.horario ?? a.horaInicio ?? ''
-          const dayKey = diaNombre.toLowerCase()
+        detalladas.forEach((item: any) => {
+          const dayKey = normalizeDayKey(String(item.diaNombre || ''))
           if (!daysOfWeek.includes(dayKey)) return
-
+          const inicio = String(item.horaInicioHHmm || '')
+          const fin = String(item.horaFinHHmm || '')
+          const time = fin ? `${inicio} - ${fin}` : inicio
           formattedSchedules[dayKey] = {
-            time: String(time),
-            room: (cons?.nombre ?? cons?.descripcion ?? consultorioCode) || 'Consultorio no asignado',
-            building: cons?.edificio ?? 'Edificio Principal',
-            floor: cons?.piso ?? undefined,
+            time,
+            room: item.consultorioDescripcion ? `${item.consultorioDescripcion}${item.consultorioCodigo ? ` (${item.consultorioCodigo})` : ''}` : (item.consultorioCodigo || 'Consultorio no asignado'),
+            building: item.edificioDescripcion || 'Edificio Principal',
+            floor: item.piso ?? undefined,
+            tipo: item.tipoTexto || undefined,
           }
         })
 
@@ -201,6 +183,16 @@ export default function SchedulePage({ params }: SchedulePageProps) {
 
     fetchData()
   }, [doctorParam, specialtyParam])
+
+  const availableDays = useMemo(() => {
+    return Object.keys(doctorSchedules || {}).filter((d) => daysOfWeek.includes(d))
+  }, [doctorSchedules])
+
+  useEffect(() => {
+    if (selectedDay && !availableDays.includes(selectedDay)) {
+      setSelectedDay(null)
+    }
+  }, [selectedDay, availableDays])
 
   if (loading) {
     return (
@@ -257,25 +249,26 @@ export default function SchedulePage({ params }: SchedulePageProps) {
 
       <div className="schedule-section">
         <h2 className="section-title">Horarios de Consulta</h2>
-        
+
+        {availableDays.length === 0 && (
+          <p>No hay días disponibles para este médico.</p>
+        )}
+
         <div className="days-grid">
-          {daysOfWeek.map((day) => (
+          {availableDays.map((day) => (
             <Card
               key={day}
               onClick={() => setSelectedDay(day)}
-              className={`day-card ${selectedDay === day ? 'selected' : ''} ${
-                !doctorSchedules[day] ? 'unavailable' : 'available'
-              }`}
+              className={`day-card ${selectedDay === day ? 'selected' : ''} available`}
             >
               <CardTitle className="day-title">{dayNames[day]}</CardTitle>
-              {doctorSchedules[day] ? (
-                <>
-                  <CalendarCheckIcon className="day-icon" />
-                  <p className="day-time">{doctorSchedules[day].time}</p>
-                </>
-              ) : (
-                <p className="day-unavailable">No disponible</p>
-              )}
+              <>
+                <CalendarCheckIcon className="day-icon" />
+                <p className="day-time">{doctorSchedules[day].time}</p>
+                {doctorSchedules[day].tipo && (
+                  <p className="day-type">Tipo: {doctorSchedules[day].tipo}</p>
+                )}
+              </>
             </Card>
           ))}
         </div>
@@ -297,6 +290,16 @@ export default function SchedulePage({ params }: SchedulePageProps) {
                   <span className="detail-value">{doctorSchedules[selectedDay].time}</span>
                 </div>
               </div>
+
+              {doctorSchedules[selectedDay].tipo && (
+                <div className="detail-row">
+                  <CalendarCheckIcon className="detail-icon" />
+                  <div>
+                    <span className="detail-label">Tipo:</span>
+                    <span className="detail-value">{doctorSchedules[selectedDay].tipo}</span>
+                  </div>
+                </div>
+              )}
               
               <div className="detail-row">
                 <DoorOpenIcon className="detail-icon" />

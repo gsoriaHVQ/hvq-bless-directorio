@@ -1,33 +1,82 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import "@/styles/pages.css"
 import { DirectorioLayout} from "@/components/directorio-layout"
 import { VirtualKeyboard } from "@/components/virtual-keyboard"
-import { allDoctorsFlat, specialties as allSpecialties } from "@/lib/data"
 import { SearchIcon } from 'lucide-react'
 import { DoctorCard } from "@/components/doctor-card"
+import { apiService } from "@/lib/api-service"
 
 export default function DoctorSearchPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
+  const [doctors, setDoctors] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  //llamar a la api para buscar doctores por nombre
-  const filteredDoctors = useMemo(() => {
-    if (!searchTerm) {
-      return allDoctorsFlat.slice(0, 3) 
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        setLoading(true)
+        const res = await apiService.getDoctors()
+        const list = Array.isArray(res.data) ? res.data : (Array.isArray((res.data as any)?.data) ? (res.data as any).data : [])
+        if (!cancelled) {
+          setDoctors(list as any[])
+          setError(null)
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Error cargando médicos')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
-    const lowerCaseSearchTerm = searchTerm.toLowerCase()
-    return allDoctorsFlat.filter((doctor) => doctor.name.toLowerCase().includes(lowerCaseSearchTerm))
-  }, [searchTerm])
+    load()
+    return () => { cancelled = true }
+  }, [])
+
+  const filteredDoctors = useMemo(() => {
+    const source = doctors.map((d: any) => ({
+      id: String(d.id ?? d.codigo ?? d.codigo_prestador ?? d.codigoPrestador ?? ''),
+      name: String(d.nombres ?? d.nombre ?? ''),
+      specialtyId: String(
+        Array.isArray(d.especialidades) && d.especialidades.length > 0
+          ? d.especialidades[0]
+          : d.especialidadId ?? d.especialidad ?? ''
+      ),
+      photo: d.retrato ?? d.foto ?? null
+    }))
+    if (!searchTerm) return source.slice(0, 12)
+    const q = searchTerm.toLowerCase()
+    return source.filter((doctor) => doctor.name.toLowerCase().includes(q))
+  }, [doctors, searchTerm])
 
   const handleEnter = () => {
     setIsKeyboardOpen(false)
   }
 
-  const getSpecialtyName = (specialtyId: string) => {
-    return allSpecialties.find((s) => s.id === specialtyId)?.name || "Especialidad Desconocida"
+  const getSpecialtySlug = (nameOrId: string) => {
+    const v = String(nameOrId || '')
+    if (/^\d+$/.test(v)) return v
+    return v.toLowerCase().replace(/\s+/g, '-')
+  }
+
+  if (loading) {
+    return (
+      <DirectorioLayout>
+        <p className="doctor-search-empty">Cargando médicos...</p>
+      </DirectorioLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <DirectorioLayout>
+        <p className="doctor-search-empty">{error}</p>
+      </DirectorioLayout>
+    )
   }
 
   return (
@@ -52,13 +101,13 @@ export default function DoctorSearchPage() {
             <DoctorCard
               key={doctor.id}
               doctor={doctor}
-              specialtyName={getSpecialtyName(doctor.specialtyId)}
-              basePath={`/specialties/${doctor.specialtyId}`}
+              specialtyName={doctor.specialtyId}
+              basePath={`/specialties/${getSpecialtySlug(doctor.specialtyId)}`}
             />
           ))
         ) : (
           <p className="doctor-search-empty">
-            {searchTerm ? "No se encontraron doctores con ese nombre." : "Empieza a escribir para buscar un doctor o selecciona uno de los doctores de prueba."}
+            {searchTerm ? "No se encontraron doctores con ese nombre." : "Empieza a escribir para buscar un doctor o selecciona uno de los doctores."}
           </p>
         )}
       </div>

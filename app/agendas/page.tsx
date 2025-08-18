@@ -5,6 +5,7 @@ import { DirectorioLayout } from "@/components/directorio-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { apiService } from "@/lib/api-service"
 
 type JsonRecord = Record<string, any>
 
@@ -28,10 +29,10 @@ export default function AgendasPage() {
       try {
         setLoading(true)
         const [agRes, consRes, diasRes, edifRes] = await Promise.all([
-          fetch("/api/agendas", { cache: "no-store" }),
-          fetch("/api/catalogos/consultorios", { cache: "no-store" }),
-          fetch("/api/catalogos/dias", { cache: "no-store" }),
-          fetch("/api/catalogos/edificios", { cache: "no-store" }),
+          fetch(`/api/agnd-agenda`, { cache: "no-store" }),
+          fetch(`/api/catalogos/consultorios`, { cache: "no-store" }),
+          fetch(`/api/catalogos/dias`, { cache: "no-store" }),
+          fetch(`/api/catalogos/edificios`, { cache: "no-store" }),
         ])
 
         if (!agRes.ok || !consRes.ok || !diasRes.ok || !edifRes.ok) {
@@ -46,7 +47,30 @@ export default function AgendasPage() {
         ])
 
         if (cancelled) return
-        setAgendas(Array.isArray(agData?.data) ? agData.data : agData)
+        const rawAgendas: JsonRecord[] = Array.isArray(agData)
+          ? agData as JsonRecord[]
+          : (Array.isArray((agData as any)?.data) ? (agData as any).data as JsonRecord[] : [])
+        // Normalizar campos desde AGND_AGENDA
+        const normalizedAgendas = (rawAgendas || []).map((a: JsonRecord) => {
+          const codigoConsultorio = a.consultorio ?? a.consultorioCodigo ?? a.consultorio_id ?? a.codigo_consultorio
+          const diaCodigo = a.dia ?? a.diaCodigo ?? a.dia_id ?? a.codigo_dia
+          const horaInicio = a.hora ?? a.horario ?? a.horaInicio ?? a.hora_inicio
+          const horaFin = a.horaFin ?? a.horarioFin ?? a.hora_fin
+          const tipo = a.tipo ?? a.type
+          return {
+            ...a,
+            id: a.id ?? a.codigo_agenda ?? a.codigo ?? undefined,
+            consultorio: codigoConsultorio,
+            consultorioCodigo: String(codigoConsultorio ?? ''),
+            dia: diaCodigo,
+            diaCodigo: String(diaCodigo ?? ''),
+            hora: horaInicio,
+            horaInicio: horaInicio,
+            horaFin: horaFin,
+            tipo
+          }
+        })
+        setAgendas(normalizedAgendas)
         setConsultorios(Array.isArray(consData?.data) ? consData.data : consData)
         setDias(Array.isArray(diasData?.data) ? diasData.data : diasData)
         setEdificios(Array.isArray(edifData?.data) ? edifData.data : edifData)
@@ -114,7 +138,7 @@ export default function AgendasPage() {
   const agendasFiltradas = useMemo(() => {
     // Enriquecer agendas con datos de consultorio, edificio, piso y día
     const enriquecidas: JsonRecord[] = agendas.map((a: JsonRecord) => {
-      const codigoConsultorio = String(a.consultorio ?? a.consultorioCodigo ?? a.consultorio_id ?? "")
+      const codigoConsultorio = String(a.consultorio ?? a.consultorioCodigo ?? a.consultorio_id ?? a.codigo_consultorio ?? "")
       const c = consultorioPorCodigo[codigoConsultorio]
       return {
         ...a,
@@ -122,7 +146,7 @@ export default function AgendasPage() {
         consultorioNombre: c?.nombre ?? c?.descripcion ?? "",
         edificio: c?.edificio ?? "",
         piso: c?.piso ?? "",
-        diaNombre: nombreDiaPorCodigo[String(a.dia ?? a.diaCodigo ?? a.dia_id ?? "")] ?? "",
+        diaNombre: nombreDiaPorCodigo[String(a.dia ?? a.diaCodigo ?? a.dia_id ?? a.codigo_dia ?? "")] ?? "",
       }
     })
 
@@ -206,6 +230,7 @@ export default function AgendasPage() {
                   <TableHead>Edificio</TableHead>
                   <TableHead>Piso</TableHead>
                   <TableHead>Hora</TableHead>
+                  <TableHead>Tipo</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -216,6 +241,7 @@ export default function AgendasPage() {
                     <TableCell>{a.edificio}</TableCell>
                     <TableCell>{a.piso}</TableCell>
                     <TableCell>{a.hora ?? a.horario ?? a.horaInicio ?? ""}</TableCell>
+                    <TableCell>{a.tipo ?? ''}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
