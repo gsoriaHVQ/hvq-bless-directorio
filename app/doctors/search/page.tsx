@@ -102,7 +102,13 @@ export default function DoctorSearchPage() {
   const getSpecialtySlug = (nameOrId: string) => {
     const v = String(nameOrId || '')
     if (/^\d+$/.test(v)) return v
-    return v.toLowerCase().replace(/\s+/g, '-')
+    return v
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
   }
 
   if (loading) {
@@ -176,3 +182,4 @@ export default function DoctorSearchPage() {
     </DirectorioLayout>
   )
 }
+

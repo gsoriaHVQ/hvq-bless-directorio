@@ -364,26 +364,28 @@ export default function SchedulePage() {
         </div>
 
         {/* Schedule Section */}
-        <section className="mb-12">
+        <section className="mb-12 flex flex-col items-center">
           <h1 className="doctor-schedule-title">Horarios de atención de {doctorInfo.name}</h1>
 
           {consultaDays.length > 0 && (
             <>
               <h3 className="doctor-schedule-section-title text-2xl font-bold text-[#7F0C43] mb-4 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>Consultas</h3>
-              <div className="doctor-schedule-days-grid inline-grid mx-auto grid grid-cols-3 gap-4 justify-items-center">
-                {consultaDays.map((day) => {
-                  const isSelected = selectedDay === day
-                  return (
-                <Card
-                  key={day}
-                      onClick={() => setSelectedDay(day)}
-                      className={`doctor-schedule-day-card${isSelected ? ' selected' : ''} flex items-center justify-center h-32 w-40 text-center`}
-                    >
-                      <CardTitle className="doctor-schedule-day-title">{dayNames[day]}</CardTitle>
-                      <CalendarCheckIcon className="doctor-schedule-day-icon" />
-                    </Card>
-                  )
-                })}
+              <div className="w-full flex justify-center">
+                <div className="inline-grid mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
+                  {consultaDays.map((day) => {
+                    const isSelected = selectedDay === day
+                    return (
+                  <Card
+                    key={day}
+                        onClick={() => setSelectedDay(day)}
+                        className={`doctor-schedule-day-card${isSelected ? ' selected' : ''} flex items-center justify-center h-32 w-40 text-center`}
+                      >
+                        <CardTitle className="doctor-schedule-day-title">{dayNames[day]}</CardTitle>
+                        <CalendarCheckIcon className="doctor-schedule-day-icon" />
+                      </Card>
+                    )
+                  })}
+                </div>
               </div>
             </>
           )}
@@ -391,20 +393,22 @@ export default function SchedulePage() {
           {procedimientoDays.length > 0 && (
             <>
               <h3 className="doctor-schedule-section-title text-2xl font-bold text-[#7F0C43] mb-4 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>Procedimientos</h3>
-              <div className="doctor-schedule-days-grid inline-grid mx-auto grid grid-cols-3 gap-4 justify-items-center">
-                {procedimientoDays.map((day) => {
-                  const isSelected = selectedDay === day
-                  return (
-                    <Card
-                      key={day}
-                      onClick={() => setSelectedDay(day)}
-                      className={`doctor-schedule-day-card${isSelected ? ' selected' : ''} flex items-center justify-center h-32 w-40 text-center`}
-                    >
-                      <CardTitle className="doctor-schedule-day-title">{dayNames[day]}</CardTitle>
-                      <CalendarCheckIcon className="doctor-schedule-day-icon" />
-                </Card>
-                  )
-                })}
+              <div className="w-full flex justify-center">
+                <div className="inline-grid mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
+                  {procedimientoDays.map((day) => {
+                    const isSelected = selectedDay === day
+                    return (
+                      <Card
+                        key={day}
+                        onClick={() => setSelectedDay(day)}
+                        className={`doctor-schedule-day-card${isSelected ? ' selected' : ''} flex items-center justify-center h-32 w-40 text-center`}
+                      >
+                        <CardTitle className="doctor-schedule-day-title">{dayNames[day]}</CardTitle>
+                        <CalendarCheckIcon className="doctor-schedule-day-icon" />
+                  </Card>
+                    )
+                  })}
+                </div>
             </div>
             </>
           )}
@@ -413,8 +417,8 @@ export default function SchedulePage() {
         {/* Selected Day Details */}
         <div ref={detailsRef} />
         {selectedDay && doctorSchedules?.[selectedDay] && (
-          <>
-            <Card className="doctor-schedule-details-card w-full">
+          <div className="w-full flex flex-col items-center">
+            <Card className="doctor-schedule-details-card w-full max-w-3xl mx-auto">
               <CardHeader className="doctor-schedule-details-header">
                 <CardTitle className="doctor-schedule-details-title">
                     Detalles para {dayNames[selectedDay]}
@@ -444,12 +448,14 @@ export default function SchedulePage() {
                 </CardContent>
               </Card>
 
-                  <InteractiveMap
-                    consultorio={doctorSchedules[selectedDay].room}
-                    building={doctorSchedules[selectedDay].building}
-                    floor={doctorSchedules[selectedDay].floor}
-                  />
-          </>
+              <div className="w-full max-w-3xl mx-auto">
+                <InteractiveMap
+                  consultorio={doctorSchedules[selectedDay].room}
+                  building={doctorSchedules[selectedDay].building}
+                  floor={doctorSchedules[selectedDay].floor}
+                />
+              </div>
+          </div>
         )}
 
         {selectedDay && !doctorSchedules?.[selectedDay] && (

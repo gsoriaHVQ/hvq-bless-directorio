@@ -177,7 +177,21 @@ class ApiService {
   }
 
   async getAgendasPorMedico(codigoPrestador: string): Promise<ApiResponse<Agenda[]>> {
-    return this.request<Agenda[]>(`/api/agnd-agenda?codigo_prestador=${encodeURIComponent(codigoPrestador)}`)
+    // Intentar con ambos nombres de parámetro para máxima compatibilidad
+    const first = await this.request<Agenda[]>(`/api/agnd-agenda?codigo_prestador=${encodeURIComponent(codigoPrestador)}`)
+    const listFirst: Record<string, unknown>[] = Array.isArray(first.data)
+      ? (first.data as Record<string, unknown>[]) 
+      : (Array.isArray((first.data as any)?.data) ? ((first.data as any).data as Record<string, unknown>[]) : [])
+    if (first.success && listFirst.length > 0) return first
+
+    const second = await this.request<Agenda[]>(`/api/agnd-agenda?cd_prestador=${encodeURIComponent(codigoPrestador)}`)
+    const listSecond: Record<string, unknown>[] = Array.isArray(second.data)
+      ? (second.data as Record<string, unknown>[])
+      : (Array.isArray((second.data as any)?.data) ? ((second.data as any).data as Record<string, unknown>[]) : [])
+    if (listSecond.length > 0) return second
+
+    // Si ambos fallan, devolver el primero para mantener mensaje/estado
+    return first.success ? first : second
   }
 
   async getAgendaStats(): Promise<ApiResponse<unknown>> {
@@ -227,19 +241,11 @@ class ApiService {
       ? (medicosRes.data as Record<string, unknown>[])
       : (Array.isArray((medicosRes.data as any)?.data) ? ((medicosRes.data as any).data as Record<string, unknown>[]) : [])
 
-    // Resolver el código correcto de prestador si se recibió un ID de médico
-    let providerCodeToUse = inputCodigo
-    const matchByDoctorId = medicos.find((m) => {
-      const mid = String((m as any).id ?? (m as any).codigo ?? (m as any).codigo_medico ?? '')
-      return mid && mid === inputCodigo
-    })
-    if (matchByDoctorId) {
-      const prov = String((matchByDoctorId as any).codigoPrestador ?? (matchByDoctorId as any).codigo_prestador ?? '')
-      if (prov) providerCodeToUse = prov
-    }
+    // Usar el código de prestador proporcionado sin reasignar
+    const providerCodeToUse = inputCodigo
 
-    // Reintentar con el código de prestador si la primera llamada no trajo resultados
-    if ((!agendasFromProv || agendasFromProv.length === 0) && providerCodeToUse !== inputCodigo) {
+    // Si la primera llamada no trajo resultados, volver a intentar explícitamente (ya maneja ambos parámetros)
+    if (!agendasFromProv || agendasFromProv.length === 0) {
       const retry = await this.getAgendasPorMedico(providerCodeToUse)
       agendasFromProv = Array.isArray(retry.data)
         ? (retry.data as Record<string, unknown>[])
@@ -329,8 +335,21 @@ class ApiService {
 
     const medicoPorId = new Map<string, Record<string, unknown>>()
     medicos.forEach((m) => {
-      const id = String((m as any).id ?? (m as any).codigo ?? (m as any).codigoPrestador ?? (m as any).codigo_prestador ?? '')
-      if (id) medicoPorId.set(id, m)
+      const candidates = [
+        (m as any).id,
+        (m as any).codigo,
+        (m as any).codigoPrestador,
+        (m as any).codigo_prestador,
+        (m as any).cd_prestador,
+        (m as any).prestadorId,
+        (m as any).medicoId,
+      ]
+      candidates
+        .map((v) => String(v ?? ''))
+        .filter((v) => Boolean(v))
+        .forEach((key) => {
+          if (!medicoPorId.has(key)) medicoPorId.set(key, m)
+        })
     })
 
     const toHHmm = (value: unknown): string => {
@@ -370,7 +389,9 @@ class ApiService {
         ? (allRes.data as Record<string, unknown>[])
         : (Array.isArray((allRes.data as any)?.data) ? ((allRes.data as any).data as Record<string, unknown>[]) : [])
       agendas = allList.filter((a: any) => {
-        const prest = String(a.codigo_prestador ?? a.codigoPrestador ?? a.prestadorId ?? a.medicoId ?? '')
+        const prest = String(
+          a.codigo_prestador ?? a.codigoPrestador ?? a.cd_prestador ?? a.prestadorId ?? a.medicoId ?? ''
+        )
         return prest === providerCodeToUse
       })
     }
@@ -393,7 +414,7 @@ class ApiService {
       }
 
       const prestadorId = String(
-        (a as any).codigo_prestador ?? (a as any).codigoPrestador ?? (a as any).prestadorId ?? (a as any).medicoId ?? ''
+        (a as any).codigo_prestador ?? (a as any).codigoPrestador ?? (a as any).cd_prestador ?? (a as any).prestadorId ?? (a as any).medicoId ?? ''
       )
       const medicoRaw = medicoPorId.get(prestadorId)
       const medicoNombre = String((medicoRaw as any)?.nombres ?? '')
