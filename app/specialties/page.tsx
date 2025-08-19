@@ -10,7 +10,7 @@ import { DirectorioLayout } from "@/components/directorio-layout"
 import { VirtualKeyboard } from "@/components/virtual-keyboard"
 import { SearchIcon } from 'lucide-react'
 import axios from "axios"
-import { getAccessToken } from "../api/auth/auth"
+import { getAccessToken } from "../../lib/auth"
 
 interface Especialidad {
   especialidadId: number
@@ -134,7 +134,7 @@ export default function SpecialtiesPage() {
               readOnly
               className="specialties-input"
             />
-            <SearchIcon className="specialties-search-icon" />
+            <SearchIcon className="specialties-search-icon-right" />
           </div>
         </div>
 
@@ -216,13 +216,15 @@ export default function SpecialtiesPage() {
       </div>
 
       {isKeyboardOpen && (
-        <VirtualKeyboard
-          value={searchTerm}
-          onChange={setSearchTerm}
-          onClose={() => setIsKeyboardOpen(false)}
-          placeholder="Escribe aquí para buscar"
-          onEnter={handleEnter}
-        />
+        <div className="virtual-keyboard-container">
+          <VirtualKeyboard
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onClose={() => setIsKeyboardOpen(false)}
+            placeholder="Escribe aquí para buscar"
+            onEnter={handleEnter}
+          />
+        </div>
       )}
     </DirectorioLayout>
   )

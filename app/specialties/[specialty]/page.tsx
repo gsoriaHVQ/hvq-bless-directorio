@@ -4,9 +4,20 @@ import { DirectorioLayout } from "@/components/directorio-layout"
 import { notFound } from "next/navigation"
 import { DoctorCard } from "@/components/doctor-card"
 import { useState, useEffect, useMemo } from "react"
-import { use } from "react" // Importar el hook use
+import { use } from "react" 
 import axios from "axios"
-import { getAccessToken } from "../../api/auth/auth"
+import { getAccessToken } from "@/lib/auth"
+
+// Normaliza textos a slug: minúsculas, sin acentos, sólo [a-z0-9-]
+const slugify = (input: string): string => {
+  return String(input || "")
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
 
 interface Especialidad {
   especialidadId: number
@@ -35,25 +46,48 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
   const [specialtyName, setSpecialtyName] = useState<string>("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedLetter, setSelectedLetter] = useState<string | null>(null)
+  const [resolvedSpecialtyId, setResolvedSpecialtyId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = await getAccessToken()
 
-        // 1. Obtener información de la especialidad
-        const specialtyResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/especialidades/${specialtyId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
+        // 1. Obtener información de la especialidad (con fallback si 404)
+        try {
+          const specialtyResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/especialidades/${specialtyId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json'
+            }
+          })
+          if (!specialtyResponse.data?.descripcion) {
+            throw new Error('Especialidad no encontrada')
           }
-        })
-
-        if (!specialtyResponse.data?.descripcion) {
-          throw new Error('Especialidad no encontrada')
+          setSpecialtyName(specialtyResponse.data.descripcion)
+          const resolved = String(specialtyResponse.data.especialidadId ?? specialtyId)
+          setResolvedSpecialtyId(resolved)
+          var resolvedIdForFilter = resolved
+        } catch (e) {
+          // Fallback: consultar catálogo de especialidades/agenda y resolver por ID o slug
+          const fallbackRes = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json'
+            }
+          })
+          const list = Array.isArray(fallbackRes.data) ? fallbackRes.data : []
+          const isId = /^\d+$/.test(String(specialtyId))
+          const match = list.find((spec: any) => {
+            if (isId) return String(spec.especialidadId) === String(specialtyId)
+            return slugify(String(spec.descripcion || '')) === slugify(String(specialtyId))
+          })
+          if (!match) throw new Error('Especialidad no encontrada')
+          setSpecialtyName(match.descripcion)
+          const resolved = String(match.especialidadId)
+          setResolvedSpecialtyId(resolved)
+          var resolvedIdForFilter = resolved
         }
-        setSpecialtyName(specialtyResponse.data.descripcion)
 
         // 2. Obtener todos los médicos con sus detalles
         const allDoctorsResponse = await axios.get('http://10.129.180.161:36560/api3/v1/medico', {
@@ -95,7 +129,11 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
           results.forEach(result => {
             if (result.status === 'fulfilled' && result.value) {
               const doctor = result.value
-              if (doctor.especialidades?.some(esp => esp.especialidadId.toString() === specialtyId)) {
+              if (
+                doctor.especialidades?.some(
+                  (esp: Especialidad) => String(esp.especialidadId) === String(resolvedIdForFilter || specialtyId)
+                )
+              ) {
                 successfulDoctors.push(doctor)
               }
             }
@@ -104,8 +142,10 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
           doctorsData = successfulDoctors
         } else {
           // 3b. Si ya son objetos completos, filtrar directamente
-          doctorsData = allDoctorsResponse.data.filter((doctor: Medico) => 
-            doctor.especialidades?.some(esp => esp.especialidadId.toString() === specialtyId)
+          doctorsData = allDoctorsResponse.data.filter((doctor: Medico) =>
+            doctor.especialidades?.some(
+              (esp: Especialidad) => String(esp.especialidadId) === String(resolvedIdForFilter || specialtyId)
+            )
           )
         }
 
@@ -120,35 +160,6 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
 
     fetchData()
   }, [specialtyId])
-
-  // Agrupar doctores por letra inicial y limitar a 3 por letra
-  const doctorsByLetter = useMemo(() => {
-    const groups: Record<string, Medico[]> = {}
-    const letters = ['A', 'B', 'C', 'D', 'E'] // Primeras 5 letras
-    
-    // Inicializar grupos para las primeras 5 letras
-    letters.forEach(letter => {
-      groups[letter] = []
-    })
-
-    // Filtrar y agrupar doctores
-    allDoctors.forEach(doctor => {
-      if (!doctor.nombres) return
-      
-      const firstLetter = doctor.nombres.charAt(0).toUpperCase()
-      if (letters.includes(firstLetter)) {
-        if (groups[firstLetter]?.length < 3) {
-          groups[firstLetter].push(doctor)
-        }
-      }
-    })
-
-    return groups
-  }, [allDoctors])
-
-  const handleLetterClick = (letter: string) => {
-    setSelectedLetter(selectedLetter === letter ? null : letter)
-  }
 
   if (loading) {
     return (
@@ -193,66 +204,30 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
     <DirectorioLayout>
       <h1 className="text-4xl font-bold text-primary mb-10 text-center">Doctores en {specialtyName}</h1>
       
-      {/* Selector de letras */}
-      <div className="flex justify-center gap-4 mb-8">
-        {['A', 'B', 'C', 'D', 'E'].map(letter => (
-          <button
-            key={letter}
-            onClick={() => handleLetterClick(letter)}
-            className={`letter-filter ${doctorsByLetter[letter]?.length ? '' : 'disabled'} ${selectedLetter === letter ? 'active' : ''}`}
-            disabled={!doctorsByLetter[letter]?.length}
-          >
-            {letter}
-          </button>
-        ))}
-      </div>
-
-      {/* Mostrar doctores por letra seleccionada o todos si no hay selección */}
-      {selectedLetter ? (
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Letra {selectedLetter}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {doctorsByLetter[selectedLetter]?.map(doctor => (
-              <DoctorCard
-                key={doctor.id}
-                doctor={{
-                  id: doctor.id.toString(),
-                  name: doctor.nombres,
-                  photo: doctor.retrato,
-                  specialty: specialtyName
-                }}
-                specialtyName={specialtyName}
-                basePath={`/specialties/${specialtyId}`}
-              />
-            ))}
+      {/* Mostrar todos los doctores sin filtro */}
+      <div className="w-full flex justify-center">
+        <div className="w-full max-w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
+            {allDoctors.map((doctor, index) => {
+              const isLastOdd = allDoctors.length % 2 === 1 && index === allDoctors.length - 1
+              return (
+                <div key={doctor.id} className={`flex justify-center ${isLastOdd ? 'md:col-span-2' : ''}`}>
+                  <DoctorCard
+                    doctor={{
+                      id: doctor.id.toString(),
+                      name: doctor.nombres,
+                      photo: doctor.retrato,
+                    }}
+                    specialtyName={specialtyName}
+                    basePath={`/specialties/${resolvedSpecialtyId || specialtyId}`}
+                    className=""
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
-      ) : (
-        <>
-          {Object.entries(doctorsByLetter).map(([letter, doctors]) => (
-            doctors.length > 0 && (
-              <div key={letter} className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Letra {letter}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {doctors.map(doctor => (
-                    <DoctorCard
-                      key={doctor.id}
-                      doctor={{
-                        id: doctor.id.toString(),
-                        name: doctor.nombres,
-                        photo: doctor.retrato,
-                        specialty: specialtyName
-                      }}
-                      specialtyName={specialtyName}
-                      basePath={`/specialties/${specialtyId}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            )
-          ))}
-        </>
-      )}
+      </div>
     </DirectorioLayout>
   )
 }

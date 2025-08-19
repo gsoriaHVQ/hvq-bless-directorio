@@ -10,6 +10,7 @@ export interface ConsultorioNormalizado {
   codigo_consultorio: string
   codigo_edificio?: string
   piso?: string | number
+  des_piso?: string
   descripcion_consultorio?: string
   // Campo crudo original por si se requiere depurar
   __raw?: Record<string, unknown>
@@ -109,17 +110,11 @@ class ApiService {
         data = await response.text().catch(() => null)
       }
       
-      // Log para debug
-      // console.log(`API Response for ${endpoint}:`, data)
-
       return {
         data: data as T,
         success: true
       }
     } catch (error) {
-      // Suavizar logging para evitar ruido en consola
-      // console.warn(`API Error (${endpoint}):`, error)
-      
       if (error instanceof Error && error.name === 'AbortError') {
         return {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -148,20 +143,20 @@ class ApiService {
   }
 
   // ===== ENDPOINTS DE MÉDICOS =====
-  async getDoctors(): Promise<ApiResponse<Doctor[]>> {
+  async getDoctores(): Promise<ApiResponse<Doctor[]>> {
     return this.request<Doctor[]>('/api/medicos')
   }
 
-  async getSpecialties(): Promise<ApiResponse<string[]>> {
+  async getEspecialidadesAgenda(): Promise<ApiResponse<string[]>> {
     return this.request<string[]>('/api/medicos/especialidades')
   }
 
-  async getDoctorsBySpecialty(especialidad: string): Promise<ApiResponse<Doctor[]>> {
-    return this.request<Doctor[]>(`/api/medicos/especialidad/${encodeURIComponent(especialidad)}`)
+  async getDoctoresPorEspecialidad(especialidadId: string | number): Promise<ApiResponse<Doctor[]>> {
+    return this.request<Doctor[]>(`/api/medicos/especialidad/${encodeURIComponent(especialidadId)}`)
   }
 
-  async getDoctorByCode(codigo: string): Promise<ApiResponse<Doctor>> {
-    return this.request<Doctor>(`/api/medicos/item/${encodeURIComponent(codigo)}`)
+  async getDoctorById(id: string | number): Promise<ApiResponse<Doctor>> {
+    return this.request<Doctor>(`/api/medicos/item/${encodeURIComponent(id)}`)
   }
 
   async getDoctorByName(nombre: string): Promise<ApiResponse<Doctor[]>> {
@@ -177,12 +172,12 @@ class ApiService {
     return this.request<Agenda[]>('/api/agnd-agenda')
   }
 
-  async getAgenda(id: number): Promise<ApiResponse<Agenda>> {
+  async getAgendaById(id: number): Promise<ApiResponse<Agenda>> {
     return this.request<Agenda>(`/api/agnd-agenda/${id}`)
   }
 
-  async getAgendasByProvider(codigo: string): Promise<ApiResponse<Agenda[]>> {
-    return this.request<Agenda[]>(`/api/agnd-agenda?codigo_prestador=${encodeURIComponent(codigo)}`)
+  async getAgendasPorMedico(codigoPrestador: string): Promise<ApiResponse<Agenda[]>> {
+    return this.request<Agenda[]>(`/api/agnd-agenda?codigo_prestador=${encodeURIComponent(codigoPrestador)}`)
   }
 
   async getAgendaStats(): Promise<ApiResponse<unknown>> {
@@ -194,50 +189,62 @@ class ApiService {
     return this.request<unknown[]>('/api/catalogos/consultorios')
   }
 
-  async getDays(): Promise<ApiResponse<unknown[]>> {
+  async getDias(): Promise<ApiResponse<unknown[]>> {
     return this.request<unknown[]>('/api/catalogos/dias')
   }
 
-  async getBuildings(): Promise<ApiResponse<Edificio[]>> {
+  async getEdificios(): Promise<ApiResponse<Edificio[]>> {
     return this.request<Edificio[]>('/api/catalogos/edificios')
   }
 
-  async getBuildingFloors(codigo: string): Promise<ApiResponse<string[]>> {
-    return this.request<string[]>(`/api/catalogos/edificios/${encodeURIComponent(codigo)}/pisos`)
+  async getPisosEdificio(codigoEdificio: string): Promise<ApiResponse<string[]>> {
+    return this.request<string[]>(`/api/catalogos/edificios/${encodeURIComponent(codigoEdificio)}/pisos`)
   }
 
   // ===== ENDPOINTS DE AGENDA PERSONALIZADA =====
-  async getCustomAgendas(): Promise<ApiResponse<Agenda[]>> {
+  async getAgendasCustom(): Promise<ApiResponse<Agenda[]>> {
     return this.request<Agenda[]>('/api/agnd-agenda')
   }
 
   // ===== ORQUESTACIÓN: AGENDAS DETALLADAS POR MÉDICO =====
-  /**
-   * Retorna las agendas enriquecidas para un médico/código de prestador, combinando:
-   * - AGND_AGENDA (/api/agnd-agenda)
-   * - MÉDICOS (/api/medicos)
-   * - CONSULTORIOS (/api/catalogos/consultorios)
-   * - EDIFICIOS (/api/catalogos/edificios)
-   * - DÍAS (/api/catalogos/dias)
-   */
   async getAgendasDetalladasPorMedico(codigoPrestador: string | number): Promise<ApiResponse<AgendaDetallada[]>> {
     // Cargar en paralelo
+    const inputCodigo = String(codigoPrestador)
     const [agendasRes, medicosRes, consultoriosRes, edificiosRes, diasRes] = await Promise.all([
-      this.getAgendasByProvider(String(codigoPrestador)),
-      this.getDoctors(),
+      this.getAgendasPorMedico(inputCodigo),
+      this.getDoctores(),
       this.getConsultorios(),
-      this.getBuildings(),
-      this.getDays()
+      this.getEdificios(),
+      this.getDias()
     ])
 
     // Normalizar listas de data ya que el backend puede envolver en { data }
-    const agendasFromProv: Record<string, unknown>[] = Array.isArray(agendasRes.data)
+    let agendasFromProv: Record<string, unknown>[] = Array.isArray(agendasRes.data)
       ? (agendasRes.data as Record<string, unknown>[])
       : (Array.isArray((agendasRes.data as any)?.data) ? ((agendasRes.data as any).data as Record<string, unknown>[]) : [])
 
     const medicos: Record<string, unknown>[] = Array.isArray(medicosRes.data)
       ? (medicosRes.data as Record<string, unknown>[])
       : (Array.isArray((medicosRes.data as any)?.data) ? ((medicosRes.data as any).data as Record<string, unknown>[]) : [])
+
+    // Resolver el código correcto de prestador si se recibió un ID de médico
+    let providerCodeToUse = inputCodigo
+    const matchByDoctorId = medicos.find((m) => {
+      const mid = String((m as any).id ?? (m as any).codigo ?? (m as any).codigo_medico ?? '')
+      return mid && mid === inputCodigo
+    })
+    if (matchByDoctorId) {
+      const prov = String((matchByDoctorId as any).codigoPrestador ?? (matchByDoctorId as any).codigo_prestador ?? '')
+      if (prov) providerCodeToUse = prov
+    }
+
+    // Reintentar con el código de prestador si la primera llamada no trajo resultados
+    if ((!agendasFromProv || agendasFromProv.length === 0) && providerCodeToUse !== inputCodigo) {
+      const retry = await this.getAgendasPorMedico(providerCodeToUse)
+      agendasFromProv = Array.isArray(retry.data)
+        ? (retry.data as Record<string, unknown>[])
+        : (Array.isArray((retry.data as any)?.data) ? ((retry.data as any).data as Record<string, unknown>[]) : [])
+    }
 
     const consultoriosRaw: Record<string, unknown>[] = Array.isArray(consultoriosRes.data)
       ? (consultoriosRes.data as Record<string, unknown>[])
@@ -260,11 +267,20 @@ class ApiService {
         (c as any).codigo_edificio ?? (c as any).edificio ?? (c as any).CD_EDIFICIO ?? ''
       )
       const piso = (c as any).piso ?? (c as any).CD_PISO
-      const descripcion = (c as any).descripcion ?? (c as any).nombre ?? (c as any).DES_CONSULTORIO
+      const des_piso = (c as any).des_piso ?? (c as any).DES_PISO ?? (c as any).descripcion_piso ?? (c as any).DESCRIPCION_PISO
+      // Priorizar campo de descripción del consultorio en diferentes variantes
+      const descripcion = (c as any).des_consultorio
+        ?? (c as any).DES_CONSULTORIO
+        ?? (c as any).descripcion_consultorio
+        ?? (c as any).DESCRIPCION_CONSULTORIO
+        ?? (c as any).descripcion
+        ?? (c as any).nombre
+        ?? (c as any).consultorio
       return {
         codigo_consultorio: codigo,
         codigo_edificio: edificio || undefined,
         piso: piso as any,
+        des_piso: des_piso ? String(des_piso) : undefined,
         descripcion_consultorio: descripcion ? String(descripcion) : undefined,
         __raw: c
       }
@@ -355,7 +371,7 @@ class ApiService {
         : (Array.isArray((allRes.data as any)?.data) ? ((allRes.data as any).data as Record<string, unknown>[]) : [])
       agendas = allList.filter((a: any) => {
         const prest = String(a.codigo_prestador ?? a.codigoPrestador ?? a.prestadorId ?? a.medicoId ?? '')
-        return prest === String(codigoPrestador)
+        return prest === providerCodeToUse
       })
     }
 
@@ -412,7 +428,7 @@ class ApiService {
         edificioDescripcion,
         tipoTexto: decodeTipo((a as any).tipo),
 
-        piso: consultorio?.piso,
+        piso: (consultorio?.des_piso as any) || consultorio?.piso,
         buildingCode
       }
     })
@@ -436,8 +452,21 @@ class ApiService {
   async getExternalConfig(): Promise<ApiResponse<unknown>> {
     return this.request<unknown>('/api/external/config')
   }
+
+  // ===== NUEVOS MÉTODOS PARA COMPATIBILIDAD =====
+  async getEspecialidadById(id: number): Promise<ApiResponse<{ especialidadId: number; descripcion: string }>> {
+    const res = await this.getEspecialidadesAgenda()
+    const list: any[] = Array.isArray(res.data) ? (res.data as any[]) : []
+    const especialidad = list.find((spec: any) => spec && spec.especialidadId === id)
+    const data = especialidad && typeof especialidad === 'object'
+      ? { especialidadId: Number(especialidad.especialidadId), descripcion: String(especialidad.descripcion || `Especialidad ${id}`) }
+      : { especialidadId: id, descripcion: `Especialidad ${id}` }
+    return {
+      data,
+      success: res.success,
+      message: res.message
+    }
+  }
 }
 
 export const apiService = new ApiService()
-
-
