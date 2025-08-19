@@ -365,7 +365,32 @@ export default function SchedulePage() {
 
         {/* Schedule Section */}
         <section className="mb-12 flex flex-col items-center">
-          <h1 className="doctor-schedule-title">Horarios de atención de {doctorInfo.name}</h1>
+          <h1 className="doctor-schedule-title">Horarios de atención</h1>
+
+          {availableDays.length === 0 && (
+            <div className="no-schedule-message w-full max-w-2xl mx-auto">
+              <Card className="no-schedule-card bg-white border border-[#E5E5E5] shadow-sm">
+                <CardHeader>
+                  <CardTitle className="no-schedule-title text-2xl font-bold text-[#7F0C43] text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>Sin horarios disponibles</CardTitle>
+                </CardHeader>
+                <CardContent className="no-schedule-content text-center">
+                  <AlertCircleIcon className="mx-auto h-12 w-12 text-[#7F0C43] mb-4" />
+                  <p className="text-[#333333] mb-4" style={{ fontFamily: "Arial, sans-serif" }}>El Dr. {doctorInfo.name} no tiene horarios de consulta programados actualmente.</p>
+                  <p className="text-[#666666]" style={{ fontFamily: "Arial, sans-serif" }}>Por favor, contacta directamente con el consultorio o regresa más tarde.</p>
+                  <div className="mt-6">
+                    <Button 
+                      variant="outline"
+                      onClick={() => router.back()}
+                      className="border-[#7F0C43] text-[#7F0C43] hover:bg-[#F9F4F6]"
+                      style={{ fontFamily: "Arial, sans-serif" }}
+                    >
+                      Volver atrás
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {consultaDays.length > 0 && (
             <>

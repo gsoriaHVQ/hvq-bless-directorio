@@ -381,22 +381,26 @@ class ApiService {
       return v || ''
     }
 
-    // Fallback: si el endpoint por proveedor no devuelve resultados, traer todas y filtrar por prestador
+    // IMPORTANTE: Solo usar las agendas específicas del médico - ELIMINAR FALLBACK COMPLETAMENTE
     let agendas: Record<string, unknown>[] = agendasFromProv
+    
+    // Si no hay agendas específicas, mantener array vacío (no mostrar datos de otros médicos)
     if (!agendas || agendas.length === 0) {
-      const allRes = await this.getAgendas()
-      const allList: Record<string, unknown>[] = Array.isArray(allRes.data)
-        ? (allRes.data as Record<string, unknown>[])
-        : (Array.isArray((allRes.data as any)?.data) ? ((allRes.data as any).data as Record<string, unknown>[]) : [])
-      agendas = allList.filter((a: any) => {
-        const prest = String(
-          a.codigo_prestador ?? a.codigoPrestador ?? a.cd_prestador ?? a.prestadorId ?? a.medicoId ?? ''
-        )
-        return prest === providerCodeToUse
-      })
+      console.log(`No se encontraron agendas para el médico ${inputCodigo}`)
+      agendas = []
     }
 
     const detalladas: AgendaDetallada[] = agendas.map((a) => {
+      // Verificación adicional: asegurar que la agenda pertenece al médico correcto
+      const prestadorId = String(
+        (a as any).codigo_prestador ?? (a as any).codigoPrestador ?? (a as any).cd_prestador ?? (a as any).prestadorId ?? (a as any).medicoId ?? ''
+      )
+      
+      // Doble verificación: solo procesar si coincide con el médico solicitado
+      if (prestadorId !== providerCodeToUse) {
+        console.log(`Agenda con prestador ${prestadorId} no coincide con médico solicitado ${providerCodeToUse}`)
+        return null as any
+      }
       const codigoConsultorio = String(
         (a as any).codigo_consultorio ?? (a as any).consultorio ?? (a as any).consultorioCodigo ?? ''
       )
@@ -413,9 +417,6 @@ class ApiService {
         )
       }
 
-      const prestadorId = String(
-        (a as any).codigo_prestador ?? (a as any).codigoPrestador ?? (a as any).cd_prestador ?? (a as any).prestadorId ?? (a as any).medicoId ?? ''
-      )
       const medicoRaw = medicoPorId.get(prestadorId)
       const medicoNombre = String((medicoRaw as any)?.nombres ?? '')
       const especialidad = Array.isArray((medicoRaw as any)?.especialidades) && (medicoRaw as any).especialidades.length > 0
@@ -452,7 +453,7 @@ class ApiService {
         piso: (consultorio?.des_piso as any) || consultorio?.piso,
         buildingCode
       }
-    })
+    }).filter(Boolean) // Filtrar nulls
 
     return {
       data: detalladas,
