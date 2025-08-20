@@ -25,7 +25,7 @@ export function CurrentTime() {
   })
 
   return (
-    <Badge suppressHydrationWarning className="bg-accent1 text-primary-foreground text-xl px-4 py-2 rounded-full shadow-md">
+    <Badge suppressHydrationWarning className="bg-accent1 text-primary-foreground text-2xl md:text-3xl px-5 md:px-6 py-3 md:py-4 rounded-full shadow-md">
       {mounted ? formattedTime : ""}
     </Badge>
   )

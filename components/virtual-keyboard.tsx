@@ -1,9 +1,11 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { XIcon, DeleteIcon, CornerDownLeftIcon } from 'lucide-react'
-import { useEffect, useRef } from "react"
+import { XIcon, MoveIcon, ChevronsDownIcon, EraserIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from "react"
+import Keyboard from "react-simple-keyboard"
+import type { KeyboardLayoutObject } from "react-simple-keyboard"
+import "react-simple-keyboard/build/css/index.css"
 
 interface VirtualKeyboardProps {
   value: string
@@ -14,37 +16,127 @@ interface VirtualKeyboardProps {
 }
 
 export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter }: VirtualKeyboardProps) {
-  const keys = [
-    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-    ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-    ["Z", "X", "C", "V", "B", "N", "M"],
-    ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-    [" ", "-", ".", "@"],
-  ]
-
   const keyboardRef = useRef<HTMLDivElement>(null)
+  const keyboardInstanceRef = useRef<any>(null)
+  const [layoutName, setLayoutName] = useState<"default" | "shift">("default")
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
 
   useEffect(() => {
     // Añadir clase para mostrar con animación
     const timer = setTimeout(() => {
       if (keyboardRef.current) {
         keyboardRef.current.classList.add('show')
+        // Posicionar un poco más abajo para no tapar el buscador
+        const rect = keyboardRef.current.getBoundingClientRect()
+        const tentativeTop = (window.innerHeight - rect.height) * 0.65
+        const top = Math.min(Math.max(20, tentativeTop), window.innerHeight - rect.height - 20)
+        const left = Math.max(20, (window.innerWidth - rect.width) / 2)
+        setPosition({ top, left })
       }
     }, 10)
     
     return () => clearTimeout(timer)
   }, [])
 
-  const handleKeyPress = (key: string) => {
-    onChange(value + key)
+  useEffect(() => {
+    if (keyboardInstanceRef.current) {
+      keyboardInstanceRef.current.setInput(value || "")
+    }
+  }, [value])
+
+  const handleKeyPress = (button: string) => {
+    if (button === "{shift}" || button === "{lock}") {
+      setLayoutName((prev) => (prev === "default" ? "shift" : "default"))
+      return
+    }
+    if (button === "{enter}") {
+      if (onEnter) onEnter()
+      return
+    }
   }
 
-  const handleDelete = () => {
-    onChange(value.slice(0, -1))
+  // Dragging handlers (mouse)
+  useEffect(() => {
+    const handleMove = (e: MouseEvent) => {
+      if (!isDragging) return
+      e.preventDefault()
+      const x = e.clientX - dragOffsetRef.current.x
+      const y = e.clientY - dragOffsetRef.current.y
+      setPosition({
+        left: Math.min(Math.max(0, x), window.innerWidth - 50),
+        top: Math.min(Math.max(0, y), window.innerHeight - 50)
+      })
+    }
+    const handleUp = () => setIsDragging(false)
+    window.addEventListener('mousemove', handleMove)
+    window.addEventListener('mouseup', handleUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('mouseup', handleUp)
+    }
+  }, [isDragging])
+
+  // Dragging handlers (touch)
+  useEffect(() => {
+    const handleMove = (e: TouchEvent) => {
+      if (!isDragging) return
+      const t = e.touches[0]
+      if (!t) return
+      const x = t.clientX - dragOffsetRef.current.x
+      const y = t.clientY - dragOffsetRef.current.y
+      setPosition({
+        left: Math.min(Math.max(0, x), window.innerWidth - 50),
+        top: Math.min(Math.max(0, y), window.innerHeight - 50)
+      })
+    }
+    const handleEnd = () => setIsDragging(false)
+    window.addEventListener('touchmove', handleMove, { passive: false })
+    window.addEventListener('touchend', handleEnd)
+    return () => {
+      window.removeEventListener('touchmove', handleMove)
+      window.removeEventListener('touchend', handleEnd)
+    }
+  }, [isDragging])
+
+  const startDragMouse = (e: React.MouseEvent) => {
+    if (!keyboardRef.current) return
+    const rect = keyboardRef.current.getBoundingClientRect()
+    dragOffsetRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    setIsDragging(true)
+  }
+  const startDragTouch = (e: React.TouchEvent) => {
+    if (!keyboardRef.current) return
+    const t = e.touches[0]
+    const rect = keyboardRef.current.getBoundingClientRect()
+    dragOffsetRef.current = { x: t.clientX - rect.left, y: t.clientY - rect.top }
+    setIsDragging(true)
   }
 
-  const handleClear = () => {
-    onChange("")
+  // Layout del teclado y etiquetas de teclas
+  const layout: KeyboardLayoutObject = {
+    default: [
+      "1 2 3 4 5 6 7 8 9 0",
+      "q w e r t y u i o p",
+      "a s d f g h j k l ñ",
+      "{shift} z x c v b n m {bksp}",
+      "{space} - . @ {enter}"
+    ],
+    shift: [
+      "! \" # $ % & / ( ) =",
+      "Q W E R T Y U I O P",
+      "A S D F G H J K L Ñ",
+      "{shift} Z X C V B N M {bksp}",
+      "{space} _ , @ {enter}"
+    ]
+  }
+
+  const display = {
+    "{bksp}": "Borrar",
+    "{enter}": "Enter",
+    "{shift}": "Shift",
+    "{space}": "Espacio"
   }
 
   const handleClose = () => {
@@ -63,62 +155,34 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
     <div className="virtual-keyboard-overlay" onClick={handleClose}>
       <div 
         ref={keyboardRef}
-        className="virtual-keyboard-content"
+        className={`virtual-keyboard-content${isDragging ? ' dragging' : ''}`}
         onClick={(e) => e.stopPropagation()}
+        style={position ? { top: position.top, left: position.left } : undefined}
       >
-        <div className="virtual-keyboard-header">
-          <Input
-            type="text"
-            value={value}
-            readOnly
-            placeholder={placeholder}
-            className="virtual-keyboard-input"
-          />
+        <div className="virtual-keyboard-header" onMouseDown={startDragMouse} onTouchStart={startDragTouch}>
+          <Button variant="ghost" size="icon" className="virtual-keyboard-drag-btn" onMouseDown={startDragMouse} onTouchStart={startDragTouch} aria-label="Mover teclado">
+            <MoveIcon className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="virtual-keyboard-nudge-btn" onClick={() => setPosition((pos) => pos ? { ...pos, top: Math.min(pos.top + 60, window.innerHeight - (keyboardRef.current?.getBoundingClientRect().height || 0) - 20) } : pos)} aria-label="Bajar teclado">
+            <ChevronsDownIcon className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="virtual-keyboard-clear-btn" onClick={() => onChange("")} aria-label="Limpiar texto">
+            <EraserIcon className="w-5 h-5" />
+          </Button>
           <Button onClick={handleClose} variant="ghost" size="icon" className="virtual-keyboard-close-btn">
             <XIcon className="w-6 h-6" />
             <span className="sr-only">Cerrar teclado</span>
           </Button>
         </div>
-        
-        <div className="virtual-keyboard-keys">
-          {keys.map((row, rowIndex) => (
-            <div key={rowIndex} className="virtual-keyboard-row">
-              {row.map((key) => (
-                <Button
-                  key={key}
-                  onClick={() => handleKeyPress(key)}
-                  className="virtual-keyboard-key"
-                >
-                  {key === " " ? "Espacio" : key}
-                </Button>
-              ))}
-            </div>
-          ))}
-          <div className="virtual-keyboard-actions">
-            <Button
-              onClick={handleDelete}
-              className="virtual-keyboard-action-btn delete"
-            >
-              <DeleteIcon className="w-5 h-5" />
-              Borrar
-            </Button>
-            <Button
-              onClick={handleClear}
-              className="virtual-keyboard-action-btn clear"
-            >
-              Limpiar
-            </Button>
-            {onEnter && (
-              <Button
-                onClick={onEnter}
-                className="virtual-keyboard-action-btn enter"
-              >
-                <CornerDownLeftIcon className="w-5 h-5" />
-                Enter
-              </Button>
-            )}
-          </div>
-        </div>
+
+        <Keyboard
+          keyboardRef={(r) => (keyboardInstanceRef.current = r)}
+          layoutName={layoutName}
+          layout={layout}
+          display={display}
+          onChange={(input: string) => onChange(input)}
+          onKeyPress={handleKeyPress}
+        />
       </div>
 
       <style jsx>{`
@@ -129,9 +193,6 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
           right: 0;
           bottom: 0;
           background-color: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: flex-end;
-          justify-content: center;
           z-index: 50;
           opacity: 0;
           animation: fadeIn 0.3s forwards;
@@ -142,18 +203,16 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
         }
         
         .virtual-keyboard-content {
+          position: fixed;
           background-color: white;
-          border-top-left-radius: 16px;
-          border-top-right-radius: 16px;
+          border-radius: 16px;
           width: 100%;
           max-width: 800px;
           padding: 16px;
-          transform: translateY(100%);
-          transition: transform 0.3s ease;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
-        
-        .virtual-keyboard-content.show {
-          transform: translateY(0);
+        .virtual-keyboard-content.dragging {
+          box-shadow: 0 16px 28px rgba(0,0,0,0.28);
         }
         
         .virtual-keyboard-header {
@@ -161,14 +220,14 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
           align-items: center;
           gap: 12px;
           margin-bottom: 16px;
+          cursor: move;
+          user-select: none;
         }
+        .virtual-keyboard-drag-btn { cursor: move; }
+        .virtual-keyboard-nudge-btn { cursor: pointer; }
+        .virtual-keyboard-clear-btn { cursor: pointer; }
         
-        .virtual-keyboard-input {
-          flex: 1;
-          font-size: 1.25rem;
-          padding: 12px;
-          text-align: center;
-        }
+        .virtual-keyboard-title { flex: 1; font-size: 1.1rem; font-weight: 600; text-align: center; }
         
         .virtual-keyboard-close-btn {
           flex-shrink: 0;

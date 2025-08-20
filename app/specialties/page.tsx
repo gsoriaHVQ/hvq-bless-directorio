@@ -216,15 +216,12 @@ export default function SpecialtiesPage() {
       </div>
 
       {isKeyboardOpen && (
-        <div className="virtual-keyboard-container">
-          <VirtualKeyboard
-            value={searchTerm}
-            onChange={setSearchTerm}
-            onClose={() => setIsKeyboardOpen(false)}
-            placeholder="Escribe aquí para buscar"
-            onEnter={handleEnter}
-          />
-        </div>
+        <VirtualKeyboard
+          value={searchTerm}
+          onChange={setSearchTerm}
+          onClose={() => setIsKeyboardOpen(false)}
+          onEnter={handleEnter}
+        />
       )}
     </DirectorioLayout>
   )
