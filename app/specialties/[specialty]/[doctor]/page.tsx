@@ -157,6 +157,20 @@ export default function SchedulePage() {
           ? (detalladasRes.data as any[])
           : []
 
+        // Función para asignar consultorio y piso por día (solo 7 pisos)
+        const getConsultorioByDay = (dayKey: string) => {
+          const consultoriosPorDia: Record<string, { room: string; floor: string }> = {
+            monday: { room: 'Consultorio 101', floor: '1' },
+            tuesday: { room: 'Consultorio 202', floor: '2' },
+            wednesday: { room: 'Consultorio 303', floor: '3' },
+            thursday: { room: 'Consultorio 404', floor: '4' },
+            friday: { room: 'Consultorio 505', floor: '5' },
+            saturday: { room: 'Consultorio 606', floor: '6' },
+            sunday: { room: 'Consultorio 707', floor: '7' }
+          }
+          return consultoriosPorDia[dayKey] || { room: 'Consultorio 101', floor: '1' }
+        }
+
         const formattedSchedules: Record<string, DoctorSchedule[]> = {}
         detalladas.forEach((item: any) => {
           const dayKey = normalizeDayKey(String(item.diaNombre || ''))
@@ -166,11 +180,15 @@ export default function SchedulePage() {
           const inicio = formatHHmmTo12h(extractHHmm(rawInicio))
           const fin = formatHHmmTo12h(extractHHmm(rawFin))
           const time = fin ? `${inicio} - ${fin}` : inicio
+          
+          // Obtener consultorio y piso por día
+          const { room, floor } = getConsultorioByDay(dayKey)
+          
           const entry: DoctorSchedule = {
             time,
-            room: item.consultorioDescripcion || 'Consultorio no asignado',
-            building: item.edificioDescripcion || 'Edificio Principal',
-            floor: item.piso || (item as any).pisoDescripcion || (item as any).des_piso || undefined,
+            room: item.consultorioDescripcion || room,
+            building: item.edificioDescripcion || 'Edificio Bless',
+            floor: item.piso || (item as any).pisoDescripcion || (item as any).des_piso || floor,
             tipo: item.tipoTexto || undefined,
           }
           if (!formattedSchedules[dayKey]) formattedSchedules[dayKey] = []

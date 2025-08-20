@@ -485,7 +485,7 @@ class ApiService {
        
        // 4. Si no encuentra el edificio, usar fallback
        if (!edificioDescripcion) {
-         edificioDescripcion = "Hospital Principal"
+         edificioDescripcion = "Edificio Bless"
          // console.debug(`No se encontró edificio para código ${buildingCode}, usando fallback: ${edificioDescripcion}`)
        }
        
@@ -495,14 +495,22 @@ class ApiService {
        const pisoCodigo = consultorio?.piso ?? (consultorio?.__raw as any)?.CD_PISO ?? (consultorio?.__raw as any)?.codigo_piso
        // console.debug(`Piso código desde consultorio:`, pisoCodigo)
        
-       // 6. Formatear el piso como "Piso X"
-       let pisoFormateado = ''
-       if (pisoCodigo) {
-         pisoFormateado = `Piso ${pisoCodigo}`
-       } else {
-         pisoFormateado = "Piso 1" // Fallback si no encuentra el piso
-         // console.debug(`No se encontró piso para consultorio ${codigoConsultorio}, usando fallback: ${pisoFormateado}`)
-       }
+               // 6. Formatear el piso como "Piso X" (solo 7 pisos)
+        let pisoFormateado = ''
+        if (pisoCodigo) {
+          // Limitar a solo 7 pisos (1-7)
+          const pisoNum = parseInt(String(pisoCodigo))
+          if (pisoNum >= 1 && pisoNum <= 7) {
+            pisoFormateado = `Piso ${pisoNum}`
+          } else {
+            // Si el piso es mayor a 7, usar un piso del 1-7 basado en el código
+            const pisoLimitado = ((pisoNum - 1) % 7) + 1
+            pisoFormateado = `Piso ${pisoLimitado}`
+          }
+        } else {
+          pisoFormateado = "Piso 1" // Fallback si no encuentra el piso
+          // console.debug(`No se encontró piso para consultorio ${codigoConsultorio}, usando fallback: ${pisoFormateado}`)
+        }
        
        // console.debug(`Piso formateado:`, pisoFormateado)
 
