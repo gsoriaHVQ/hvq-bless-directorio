@@ -381,3 +381,93 @@
   grid-column: 1 / -1;
   text-align: center;
 }
+
+/* Estilos para las tarjetas de días de consulta y procedimiento */
+.consultation-days-card,
+.procedure-days-card {
+  background: var(--color-bg-light);
+  border: 2px solid var(--color-border-light);
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.consultation-days-card:hover,
+.procedure-days-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.consultation-days-header,
+.procedure-days-header {
+  background: var(--color-bg-light);
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 1.5rem;
+}
+
+.consultation-days-title,
+.procedure-days-title {
+  color: var(--color-primary);
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.consultation-days-content,
+.procedure-days-content {
+  padding: 1.5rem;
+}
+
+.consultation-day-card,
+.procedure-day-card {
+  background: white;
+  border: 2px solid var(--color-border-light);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.consultation-day-card:hover,
+.procedure-day-card:hover {
+  border-color: var(--color-accent1);
+  box-shadow: 0 4px 12px rgba(127, 12, 67, 0.2);
+  transform: translateY(-2px);
+}
+
+.consultation-day-card.selected,
+.procedure-day-card.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-light);
+}
+
+.consultation-day-card.selected .consultation-day-title,
+.procedure-day-card.selected .procedure-day-title {
+  color: var(--color-text-light);
+}
+
+.consultation-day-card.selected .consultation-day-title,
+.consultation-day-card.selected .procedure-day-title,
+.consultation-day-card.selected svg,
+.procedure-day-card.selected svg {
+  color: var(--color-text-light);
+}
+
+.consultation-day-title,
+.procedure-day-title {
+  color: var(--color-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.consultation-day-card:hover .consultation-day-title,
+.procedure-day-card:hover .procedure-day-title {
+  color: var(--color-accent1);
+}
+
+.consultation-day-card.selected:hover .consultation-day-title,
+.procedure-day-card.selected:hover .procedure-day-title {
+  color: var(--color-text-light);
+}

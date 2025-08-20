@@ -7,6 +7,7 @@ import { useState, useEffect, useMemo } from "react"
 import { use } from "react" 
 import axios from "axios"
 import { getAccessToken } from "@/lib/auth"
+import { Spinner } from "@/components/ui/spinner"
 
 // Normaliza textos a slug: minúsculas, sin acentos, sólo [a-z0-9-]
 const slugify = (input: string): string => {
@@ -164,9 +165,8 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
   if (loading) {
     return (
       <DirectorioLayout>
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Cargando doctores...</p>
+        <div className="flex items-center justify-center min-h-[300px]">
+          <Spinner size="lg" />
         </div>
       </DirectorioLayout>
     )

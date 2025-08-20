@@ -61,9 +61,11 @@ export interface ApiResponse<T> {
 
 class ApiService {
   private baseURL: string
+  private inMemoryCache: Map<string, { ts: number; data: any }>
 
   constructor() {
     this.baseURL = API_CONFIG.BASE_URL
+    this.inMemoryCache = new Map()
   }
 
   // Método helper para hacer requests al backend real
@@ -78,6 +80,16 @@ class ApiService {
     }
 
     try {
+      // Cache GET simples por 30s
+      const isGet = !config.method || config.method.toUpperCase() === 'GET'
+      const cacheKey = `${config.method || 'GET'}:${url}`
+      if (isGet) {
+        const cached = this.inMemoryCache.get(cacheKey)
+        if (cached && Date.now() - cached.ts < 30000) {
+          return { data: cached.data as T, success: true }
+        }
+      }
+
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT)
 
@@ -110,10 +122,11 @@ class ApiService {
         data = await response.text().catch(() => null)
       }
       
-      return {
-        data: data as T,
-        success: true
+      const ok: ApiResponse<T> = { data: data as T, success: true }
+      if (isGet) {
+        this.inMemoryCache.set(cacheKey, { ts: Date.now(), data })
       }
+      return ok
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         return {
@@ -260,20 +273,27 @@ class ApiService {
       ? (edificiosRes.data as Record<string, unknown>[])
       : (Array.isArray((edificiosRes.data as any)?.data) ? ((edificiosRes.data as any).data as Record<string, unknown>[]) : [])
 
+    // Debug: Log para ver qué datos llegan de los endpoints
+    // console.debug('Consultorios raw:', consultoriosRaw.slice(0, 2))
+    // console.debug('Edificios:', edificios.slice(0, 2))
+
     const diasCatalogo: Record<string, unknown>[] = Array.isArray(diasRes.data)
       ? (diasRes.data as Record<string, unknown>[])
       : (Array.isArray((diasRes.data as any)?.data) ? ((diasRes.data as any).data as Record<string, unknown>[]) : [])
 
     // Normalizar consultorios desde API (acepta CD_CONSULTORIO/CD_EDIFICIO/CD_PISO/DES_CONSULTORIO)
     const normalizarConsultorio = (c: Record<string, unknown>): ConsultorioNormalizado => {
+      // Debug: Log para ver qué datos llegan del consultorio
+      // console.debug(`Normalizando consultorio raw:`, c)
+      
       const codigo = String(
-        (c as any).codigo ?? (c as any).id ?? (c as any).codigo_consultorio ?? (c as any).CD_CONSULTORIO ?? ''
+        (c as any).codigo ?? (c as any).id ?? (c as any).codigo_consultorio ?? (c as any).CD_CONSULTORIO ?? (c as any).consultorio_id ?? ''
       )
       const edificio = String(
-        (c as any).codigo_edificio ?? (c as any).edificio ?? (c as any).CD_EDIFICIO ?? ''
+        (c as any).codigo_edificio ?? (c as any).edificio ?? (c as any).CD_EDIFICIO ?? (c as any).codigoEdificio ?? (c as any).edificio_id ?? (c as any).edificioId ?? ''
       )
-      const piso = (c as any).piso ?? (c as any).CD_PISO
-      const des_piso = (c as any).des_piso ?? (c as any).DES_PISO ?? (c as any).descripcion_piso ?? (c as any).DESCRIPCION_PISO
+      const piso = (c as any).piso ?? (c as any).CD_PISO ?? (c as any).codigoPiso ?? (c as any).piso_id ?? (c as any).pisoId
+      const des_piso = (c as any).des_piso ?? (c as any).DES_PISO ?? (c as any).descripcion_piso ?? (c as any).DESCRIPCION_PISO ?? (c as any).descripcionPiso ?? (c as any).piso_descripcion
       // Priorizar campo de descripción del consultorio en diferentes variantes
       const descripcion = (c as any).des_consultorio
         ?? (c as any).DES_CONSULTORIO
@@ -282,7 +302,9 @@ class ApiService {
         ?? (c as any).descripcion
         ?? (c as any).nombre
         ?? (c as any).consultorio
-      return {
+        ?? (c as any).consultorio_nombre
+      
+      const result = {
         codigo_consultorio: codigo,
         codigo_edificio: edificio || undefined,
         piso: piso as any,
@@ -290,19 +312,43 @@ class ApiService {
         descripcion_consultorio: descripcion ? String(descripcion) : undefined,
         __raw: c
       }
+      
+      // Debug: Log para ver el resultado de la normalización
+      // console.debug(`Consultorio normalizado:`, result)
+      
+      return result
     }
 
     const consultorioPorCodigo = new Map<string, ConsultorioNormalizado>()
     consultoriosRaw.forEach((c) => {
       const norm = normalizarConsultorio(c)
-      if (norm.codigo_consultorio) consultorioPorCodigo.set(norm.codigo_consultorio, norm)
+      if (norm.codigo_consultorio) {
+        consultorioPorCodigo.set(norm.codigo_consultorio, norm)
+        // Debug: Log para ver qué consultorios se están mapeando
+        // console.debug(`Mapeando consultorio código ${norm.codigo_consultorio}:`, {
+        //   codigo_edificio: norm.codigo_edificio,
+        //   piso: norm.piso,
+        //   descripcion: norm.descripcion_consultorio,
+        //   raw: norm.__raw
+        // })
+      }
     })
+    
+    // Debug: Log para ver todos los códigos de consultorio disponibles
+    // console.debug(`Códigos de consultorio disponibles:`, Array.from(consultorioPorCodigo.keys()))
 
     const edificioPorCodigo = new Map<string, Record<string, unknown>>()
     edificios.forEach((e) => {
-      const codigo = String((e as any).codigo ?? (e as any).id ?? '')
-      if (codigo) edificioPorCodigo.set(codigo, e)
+      const codigo = String((e as any).codigo ?? (e as any).id ?? (e as any).codigoEdificio ?? (e as any).CD_EDIFICIO ?? (e as any).edificio_id ?? '')
+      if (codigo) {
+        edificioPorCodigo.set(codigo, e)
+        // Debug: Log para ver qué edificios se están mapeando
+        // console.debug(`Mapeando edificio código ${codigo}:`, e)
+      }
     })
+    
+    // Debug: Log para ver todos los códigos de edificio disponibles
+    // console.debug(`Códigos de edificio disponibles:`, Array.from(edificioPorCodigo.keys()))
 
     const diaNombrePorCodigo = new Map<string, string>()
     diasCatalogo.forEach((d) => {
@@ -386,7 +432,7 @@ class ApiService {
     
     // Si no hay agendas específicas, mantener array vacío (no mostrar datos de otros médicos)
     if (!agendas || agendas.length === 0) {
-      console.log(`No se encontraron agendas para el médico ${inputCodigo}`)
+      // console.debug(`No se encontraron agendas para el médico ${inputCodigo}`)
       agendas = []
     }
 
@@ -398,24 +444,67 @@ class ApiService {
       
       // Doble verificación: solo procesar si coincide con el médico solicitado
       if (prestadorId !== providerCodeToUse) {
-        console.log(`Agenda con prestador ${prestadorId} no coincide con médico solicitado ${providerCodeToUse}`)
+        // console.debug(`Agenda con prestador ${prestadorId} no coincide con médico solicitado ${providerCodeToUse}`)
         return null as any
       }
-      const codigoConsultorio = String(
-        (a as any).codigo_consultorio ?? (a as any).consultorio ?? (a as any).consultorioCodigo ?? ''
-      )
-      const consultorio = consultorioPorCodigo.get(codigoConsultorio)
-      const buildingCode = String(consultorio?.codigo_edificio ?? '')
-      const edificioRaw = buildingCode ? edificioPorCodigo.get(buildingCode) : undefined
-      let edificioDescripcion = String(
-        (edificioRaw as any)?.descripcion_edificio ?? (edificioRaw as any)?.descripcion ?? (edificioRaw as any)?.nombre ?? ''
-      )
-      if (!edificioDescripcion) {
-        const rawC = consultorio?.__raw as any
-        edificioDescripcion = String(
-          rawC?.descripcion_edificio ?? rawC?.DES_EDIFICIO ?? rawC?.edificioNombre ?? ''
-        )
-      }
+             const codigoConsultorio = String(
+         (a as any).codigo_consultorio ?? (a as any).consultorio ?? (a as any).consultorioCodigo ?? ''
+       )
+       
+       // Debug: Log para ver qué código de consultorio estamos buscando
+       // console.debug(`Buscando consultorio con código: ${codigoConsultorio}`)
+       // console.debug(`Agenda completa:`, a)
+       
+       const consultorio = consultorioPorCodigo.get(codigoConsultorio)
+       
+       // Debug: Log para ver si encontramos el consultorio
+       // console.debug(`Consultorio encontrado:`, consultorio)
+      
+                    // FLUJO CORRECTO: Agenda -> Consultorio -> Edificio -> Piso
+       
+       // 1. Obtener código del edificio desde el consultorio
+       const buildingCode = String(consultorio?.codigo_edificio ?? '')
+       // console.debug(`Building code from consultorio: ${buildingCode}`)
+       
+       // 2. Buscar el edificio por su código
+       const edificioRaw = buildingCode ? edificioPorCodigo.get(buildingCode) : undefined
+       // console.debug(`Edificio encontrado para código ${buildingCode}:`, edificioRaw)
+       
+       // 3. Obtener descripción del edificio del catálogo de edificios
+       let edificioDescripcion = ''
+       if (edificioRaw) {
+         edificioDescripcion = String(
+           (edificioRaw as any)?.descripcion_edificio ?? 
+           (edificioRaw as any)?.descripcion ?? 
+           (edificioRaw as any)?.nombre ?? 
+           (edificioRaw as any)?.DES_EDIFICIO ??
+           (edificioRaw as any)?.edificioNombre ??
+           (edificioRaw as any)?.nombre_edificio ?? ''
+         )
+       }
+       
+       // 4. Si no encuentra el edificio, usar fallback
+       if (!edificioDescripcion) {
+         edificioDescripcion = "Hospital Principal"
+         // console.debug(`No se encontró edificio para código ${buildingCode}, usando fallback: ${edificioDescripcion}`)
+       }
+       
+       // console.debug(`Edificio descripción final:`, edificioDescripcion)
+       
+       // 5. Obtener código del piso desde el consultorio
+       const pisoCodigo = consultorio?.piso ?? (consultorio?.__raw as any)?.CD_PISO ?? (consultorio?.__raw as any)?.codigo_piso
+       // console.debug(`Piso código desde consultorio:`, pisoCodigo)
+       
+       // 6. Formatear el piso como "Piso X"
+       let pisoFormateado = ''
+       if (pisoCodigo) {
+         pisoFormateado = `Piso ${pisoCodigo}`
+       } else {
+         pisoFormateado = "Piso 1" // Fallback si no encuentra el piso
+         // console.debug(`No se encontró piso para consultorio ${codigoConsultorio}, usando fallback: ${pisoFormateado}`)
+       }
+       
+       // console.debug(`Piso formateado:`, pisoFormateado)
 
       const medicoRaw = medicoPorId.get(prestadorId)
       const medicoNombre = String((medicoRaw as any)?.nombres ?? '')
@@ -445,12 +534,12 @@ class ApiService {
         diaNombre,
         horaInicioHHmm: horaInicio,
         horaFinHHmm: horaFin,
-        consultorioDescripcion: consultorio?.descripcion_consultorio,
+                 consultorioDescripcion: consultorio?.descripcion_consultorio || consultorio?.__raw ? (consultorio.__raw as any)?.DES_CONSULTORIO : "",
         consultorioCodigo: consultorio?.codigo_consultorio,
         edificioDescripcion,
         tipoTexto: decodeTipo((a as any).tipo),
 
-        piso: (consultorio?.des_piso as any) || consultorio?.piso,
+                          piso: pisoFormateado,
         buildingCode
       }
     }).filter(Boolean) // Filtrar nulls

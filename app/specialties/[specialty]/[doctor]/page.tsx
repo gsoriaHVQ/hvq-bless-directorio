@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import "@/styles/pages.css"
 import { notFound } from "next/navigation"
 import { useState, useEffect, useMemo, useRef } from "react"
-import { DoorOpenIcon, BuildingIcon, CalendarCheckIcon, ClockIcon, MapPinIcon, AlertCircleIcon, UserRoundIcon as UserRoundMedical } from 'lucide-react' 
+import { DoorOpenIcon, BuildingIcon, CalendarCheckIcon, ClockIcon, MapPinIcon, AlertCircleIcon, UserRoundIcon as UserRoundMedical, ClipboardListIcon, ScissorsIcon } from 'lucide-react' 
 import { InteractiveMap } from "@/components/interactive-map"
 import axios from "axios"
 import { getAccessToken } from "@/lib/auth"
@@ -392,51 +392,83 @@ export default function SchedulePage() {
             </div>
           )}
 
-          {consultaDays.length > 0 && (
-            <>
-              <h3 className="doctor-schedule-section-title text-2xl font-bold text-[#7F0C43] mb-4 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>Consultas</h3>
-              <div className="w-full flex justify-center">
-                <div className="inline-grid mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
-                  {consultaDays.map((day) => {
-                    const isSelected = selectedDay === day
-                    return (
-                  <Card
-                    key={day}
-                        onClick={() => setSelectedDay(day)}
-                        className={`doctor-schedule-day-card${isSelected ? ' selected' : ''} flex items-center justify-center h-32 w-40 text-center`}
-                      >
-                        <CardTitle className="doctor-schedule-day-title">{dayNames[day]}</CardTitle>
-                        <CalendarCheckIcon className="doctor-schedule-day-icon" />
-                      </Card>
-                    )
-                  })}
-                </div>
-              </div>
-            </>
-          )}
+                    <div className={`w-full max-w-6xl mx-auto grid gap-8 ${
+            consultaDays.length > 0 && procedimientoDays.length > 0 
+              ? 'grid-cols-1 lg:grid-cols-2' 
+              : 'grid-cols-1 max-w-2xl'
+          }`}>
+            {/* Días de Consulta */}
+            {consultaDays.length > 0 && (
+              <Card className="consultation-days-card bg-white border border-[#E5E5E5] shadow-sm">
+                <CardHeader className="consultation-days-header">
+                  <div className="flex items-center gap-3">
+                    <ClipboardListIcon className="h-6 w-6 text-[#7F0C43]" />
+                    <CardTitle className="consultation-days-title text-xl font-bold text-[#7F0C43]" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                      Días de Consulta
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="consultation-days-content">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {consultaDays.map((day) => {
+                      const isSelected = selectedDay === day
+                      return (
+                        <Card
+                          key={day}
+                          onClick={() => setSelectedDay(day)}
+                          className={`consultation-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center h-24 w-full text-center cursor-pointer transition-all duration-200 hover:shadow-md`}
+                        >
+                          <CardTitle className="consultation-day-title text-lg font-semibold text-[#7F0C43] mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                            {dayNames[day]}
+                          </CardTitle>
+                          <div className="flex items-center gap-2">
+                            <ClipboardListIcon className="h-4 w-4 text-[#7F0C43]" />
+                            <CalendarCheckIcon className="h-4 w-4 text-[#7F0C43]" />
+                          </div>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-          {procedimientoDays.length > 0 && (
-            <>
-              <h3 className="doctor-schedule-section-title text-2xl font-bold text-[#7F0C43] mb-4 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>Procedimientos</h3>
-              <div className="w-full flex justify-center">
-                <div className="inline-grid mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
-                  {procedimientoDays.map((day) => {
-                    const isSelected = selectedDay === day
-                    return (
-                      <Card
-                        key={day}
-                        onClick={() => setSelectedDay(day)}
-                        className={`doctor-schedule-day-card${isSelected ? ' selected' : ''} flex items-center justify-center h-32 w-40 text-center`}
-                      >
-                        <CardTitle className="doctor-schedule-day-title">{dayNames[day]}</CardTitle>
-                        <CalendarCheckIcon className="doctor-schedule-day-icon" />
-                  </Card>
-                    )
-                  })}
-                </div>
-            </div>
-            </>
-          )}
+            {/* Días de Procedimiento */}
+            {procedimientoDays.length > 0 && (
+              <Card className="procedure-days-card bg-white border border-[#E5E5E5] shadow-sm">
+                <CardHeader className="procedure-days-header">
+                  <div className="flex items-center gap-3">
+                    <ScissorsIcon className="h-6 w-6 text-[#7F0C43]" />
+                    <CardTitle className="procedure-days-title text-xl font-bold text-[#7F0C43]" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                      Días de Procedimiento
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="procedure-days-content">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {procedimientoDays.map((day) => {
+                      const isSelected = selectedDay === day
+                      return (
+                        <Card
+                          key={day}
+                          onClick={() => setSelectedDay(day)}
+                          className={`procedure-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center h-24 w-full text-center cursor-pointer transition-all duration-200 hover:shadow-md`}
+                        >
+                          <CardTitle className="procedure-day-title text-lg font-semibold text-[#7F0C43] mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                            {dayNames[day]}
+                          </CardTitle>
+                          <div className="flex items-center gap-2">
+                            <ScissorsIcon className="h-4 w-4 text-[#7F0C43]" />
+                            <CalendarCheckIcon className="h-4 w-4 text-[#7F0C43]" />
+                          </div>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </section>
 
         {/* Selected Day Details */}

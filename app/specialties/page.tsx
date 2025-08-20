@@ -11,6 +11,7 @@ import { VirtualKeyboard } from "@/components/virtual-keyboard"
 import { SearchIcon } from 'lucide-react'
 import axios from "axios"
 import { getAccessToken } from "../../lib/auth"
+import { Spinner } from "@/components/ui/spinner"
 
 interface Especialidad {
   especialidadId: number
@@ -29,6 +30,17 @@ export default function SpecialtiesPage() {
   useEffect(() => {
     const fetchSpecialties = async () => {
       try {
+        // Cacheado simple en sessionStorage por 60s
+        const cacheKey = 'specialties_agenda_cache_v1'
+        const cached = typeof window !== 'undefined' ? sessionStorage.getItem(cacheKey) : null
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          if (parsed?.ts && Date.now() - parsed.ts < 60000 && Array.isArray(parsed.data)) {
+            setSpecialties(parsed.data)
+            return
+          }
+        }
+
         const token = await getAccessToken()
         const response = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
           headers: {
@@ -37,25 +49,14 @@ export default function SpecialtiesPage() {
           }
         })
 
-        // Filtrar, ordenar y obtener primera especialidad por letra inicial
-        const filteredData = response.data
-          .filter((esp: Especialidad) => esp.descripcion)
-          .sort((a: Especialidad, b: Especialidad) => 
-            (a.descripcion || '').localeCompare(b.descripcion || ''))
-        
-        // Obtener primera especialidad por letra
-        const uniqueFirstLetters = new Set<string>()
-        const firstByLetter = filteredData.filter(specialty => {
-          if (!specialty.descripcion) return false
-          const firstLetter = specialty.descripcion.charAt(0).toUpperCase()
-          if (!uniqueFirstLetters.has(firstLetter)) {
-            uniqueFirstLetters.add(firstLetter)
-            return true
-          }
-          return false
-        })
-        
-        setSpecialties(firstByLetter)
+        // Traer TODAS las especialidades válidas, ordenadas alfabéticamente
+        const fullList = (response.data as Especialidad[])
+          .filter((esp: Especialidad) => Boolean(esp.descripcion))
+          .sort((a: Especialidad, b: Especialidad) => (a.descripcion || '').localeCompare(b.descripcion || ''))
+        setSpecialties(fullList)
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: fullList }))
+        }
       } catch (err) {
         console.error('Error fetching specialties:', err)
         setError('Error al cargar las especialidades. Intente nuevamente más tarde.')
@@ -95,9 +96,8 @@ export default function SpecialtiesPage() {
   if (loading) {
     return (
       <DirectorioLayout>
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Cargando especialidades...</p>
+        <div className="flex items-center justify-center min-h-[300px]">
+          <Spinner size="lg" />
         </div>
       </DirectorioLayout>
     )

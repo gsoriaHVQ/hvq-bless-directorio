@@ -11,7 +11,7 @@ interface InteractiveMapProps {
 export function InteractiveMap({ consultorio, building, floor }: InteractiveMapProps) {
   // Mapeo conceptual de edificios a posiciones en el mapa (ejemplo simplificado)
   const buildingPositions: { [key: string]: { top: string; left: string } } = {
-    "Hospital Principal": { top: "30%", left: "25%" },
+    "kkkk": { top: "30%", left: "25%" },
     "Bless": { top: "60%", left: "70%" },
     // Añade más edificios y posiciones si es necesario
   }

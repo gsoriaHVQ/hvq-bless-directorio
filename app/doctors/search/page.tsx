@@ -7,6 +7,7 @@ import { DirectorioLayout} from "@/components/directorio-layout"
 import { VirtualKeyboard } from "@/components/virtual-keyboard"
 import { SearchIcon } from 'lucide-react'
 import { DoctorCard } from "@/components/doctor-card"
+import { Spinner } from "@/components/ui/spinner"
 import { apiService } from "@/lib/api-service"
 
 export default function DoctorSearchPage() {
@@ -114,7 +115,9 @@ export default function DoctorSearchPage() {
   if (loading) {
     return (
       <DirectorioLayout>
-        <p className="doctor-search-empty">Cargando médicos...</p>
+        <div className="flex items-center justify-center min-h-[300px]">
+          <Spinner size="lg" />
+        </div>
       </DirectorioLayout>
     )
   }
