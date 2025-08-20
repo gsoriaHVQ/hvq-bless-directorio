@@ -86,7 +86,7 @@ export default function SpecialtiesPage() {
       }
     })
     
-    return { leftColumn, rightColumn }
+    return { leftColumn, rightColumn, total: filtered.length }
   }, [searchTerm, specialties])
 
   const handleEnter = () => {
@@ -123,8 +123,25 @@ export default function SpecialtiesPage() {
   return (
     <DirectorioLayout>
       <div className="specialties-container">
-        <h1 className="specialties-title">Especialidades Médicas</h1>
-        <div className="specialties-input-container">
+        <div className="sticky top-24 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+          <div className="w-full px-0">
+            <h1 className="specialties-title">Especialidades Médicas</h1>
+            <div className="specialties-input-container" style={{maxWidth: 'none'}}>
+              <div className="specialties-input-wrapper">
+                <Input
+                  type="text"
+                  placeholder="Buscar especialidad..."
+                  value={searchTerm}
+                  onFocus={() => setIsKeyboardOpen(true)}
+                  readOnly
+                  className="specialties-input"
+                />
+                <SearchIcon className="specialties-search-icon-right" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="specialties-input-container hidden">{/* antiguo contenedor, se deja oculto */}
           <div className="specialties-input-wrapper">
             <Input
               type="text"
@@ -138,77 +155,117 @@ export default function SpecialtiesPage() {
           </div>
         </div>
 
-        <div className="alternating-columns-layout">
-          {/* Columna izquierda (A, C, E, ...) */}
-          <div className="column left-column">
-            {columns.leftColumn.map((specialty) => (
-              <Link 
-                key={specialty.especialidadId} 
-                href={`/specialties/${specialty.especialidadId}`} 
-                passHref
-              >
-                <Card className="specialties-card group">
-                  <CardContent className="specialties-card-content">
-                    {specialty.icono ? (
-                      <div className="specialties-icon-container">
-                        <img 
-                          src={specialty.icono} 
-                          alt={`Icono de ${specialty.descripcion}`}
-                          className="specialties-card-icon"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none'
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="specialties-default-icon">
-                        <span className="text-2xl">🏥</span>
-                      </div>
-                    )}
-                    <CardTitle className="specialties-card-title">
-                      {specialty.descripcion || 'Especialidad sin nombre'}
-                    </CardTitle>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+        {columns.total === 1 ? (
+          <div className="w-full flex justify-center" style={{marginTop: '2rem'}}>
+            {(() => {
+              const specialty = columns.leftColumn[0] || columns.rightColumn[0]
+              if (!specialty) return null
+              return (
+                <Link 
+                  key={specialty.especialidadId} 
+                  href={`/specialties/${specialty.especialidadId}`} 
+                  passHref
+                >
+                  <Card className="specialties-card group">
+                    <CardContent className="specialties-card-content">
+                      {specialty.icono ? (
+                        <div className="specialties-icon-container">
+                          <img 
+                            src={specialty.icono} 
+                            alt={`Icono de ${specialty.descripcion}`}
+                            className="specialties-card-icon"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="specialties-default-icon">
+                          <span className="text-2xl">🏥</span>
+                        </div>
+                      )}
+                      <CardTitle className="specialties-card-title">
+                        {specialty.descripcion || 'Especialidad sin nombre'}
+                      </CardTitle>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )
+            })()}
           </div>
+        ) : (
+          <div className="alternating-columns-layout" style={{marginTop: '2rem'}}>
+            {/* Columna izquierda (A, C, E, ...) */}
+            <div className="column left-column">
+              {columns.leftColumn.map((specialty) => (
+                <Link 
+                  key={specialty.especialidadId} 
+                  href={`/specialties/${specialty.especialidadId}`} 
+                  passHref
+                >
+                  <Card className="specialties-card group">
+                    <CardContent className="specialties-card-content">
+                      {specialty.icono ? (
+                        <div className="specialties-icon-container">
+                          <img 
+                            src={specialty.icono} 
+                            alt={`Icono de ${specialty.descripcion}`}
+                            className="specialties-card-icon"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="specialties-default-icon">
+                          <span className="text-2xl">🏥</span>
+                        </div>
+                      )}
+                      <CardTitle className="specialties-card-title">
+                        {specialty.descripcion || 'Especialidad sin nombre'}
+                      </CardTitle>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
 
-          {/* Columna derecha (B, D, F, ...) */}
-          <div className="column right-column">
-            {columns.rightColumn.map((specialty) => (
-              <Link 
-                key={specialty.especialidadId} 
-                href={`/specialties/${specialty.especialidadId}`} 
-                passHref
-              >
-                <Card className="specialties-card group">
-                  <CardContent className="specialties-card-content">
-                    {specialty.icono ? (
-                      <div className="specialties-icon-container">
-                        <img 
-                          src={specialty.icono} 
-                          alt={`Icono de ${specialty.descripcion}`}
-                          className="specialties-card-icon"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none'
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="specialties-default-icon">
-                        <span className="text-2xl">🏥</span>
-                      </div>
-                    )}
-                    <CardTitle className="specialties-card-title">
-                      {specialty.descripcion || 'Especialidad sin nombre'}
-                    </CardTitle>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+            {/* Columna derecha (B, D, F, ...) */}
+            <div className="column right-column">
+              {columns.rightColumn.map((specialty) => (
+                <Link 
+                  key={specialty.especialidadId} 
+                  href={`/specialties/${specialty.especialidadId}`} 
+                  passHref
+                >
+                  <Card className="specialties-card group">
+                    <CardContent className="specialties-card-content">
+                      {specialty.icono ? (
+                        <div className="specialties-icon-container">
+                          <img 
+                            src={specialty.icono} 
+                            alt={`Icono de ${specialty.descripcion}`}
+                            className="specialties-card-icon"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="specialties-default-icon">
+                          <span className="text-2xl">🏥</span>
+                        </div>
+                      )}
+                      <CardTitle className="specialties-card-title">
+                        {specialty.descripcion || 'Especialidad sin nombre'}
+                      </CardTitle>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {columns.leftColumn.length === 0 && columns.rightColumn.length === 0 && (
           <p className="specialties-empty">No se encontraron especialidades.</p>

@@ -326,6 +326,8 @@
   width: 100%;
   max-width: 48rem; /* max-w-3xl */
   margin-bottom: 2.5rem;
+  margin-left: auto; /* centrar */
+  margin-right: auto; /* centrar */
   position: relative;
 }
 

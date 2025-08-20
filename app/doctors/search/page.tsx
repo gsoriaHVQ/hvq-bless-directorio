@@ -132,18 +132,22 @@ export default function DoctorSearchPage() {
 
   return (
     <DirectorioLayout>
-      <h1 className="doctor-search-title">Buscar Doctor por Nombre</h1>
-      <div className="doctor-search-input-container">
-        <div className="doctor-search-input-wrapper">
-          <Input
-            type="text"
-            placeholder="Escribe el nombre del doctor..."
-            value={searchTerm}
-            onFocus={() => setIsKeyboardOpen(true)}
-            readOnly
-            className="doctor-search-input"
-          />
-          <SearchIcon className="doctor-search-icon" />
+      <div className="sticky top-24 z-30 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+        <div className="w-full px-0">
+          <h1 className="doctor-search-title">Buscar Doctor por Nombre</h1>
+          <div className="doctor-search-input-container">
+            <div className="doctor-search-input-wrapper">
+              <Input
+                type="text"
+                placeholder="Escribe el nombre del doctor..."
+                value={searchTerm}
+                onFocus={() => setIsKeyboardOpen(true)}
+                readOnly
+                className="doctor-search-input"
+              />
+              <SearchIcon className="doctor-search-icon" />
+            </div>
+          </div>
         </div>
       </div>
       <div className="w-full flex justify-center">

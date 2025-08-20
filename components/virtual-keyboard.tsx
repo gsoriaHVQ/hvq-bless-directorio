@@ -5,7 +5,6 @@ import { XIcon, MoveIcon, ChevronsDownIcon, EraserIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import Keyboard from "react-simple-keyboard"
 import type { KeyboardLayoutObject } from "react-simple-keyboard"
-import "react-simple-keyboard/build/css/index.css"
 
 interface VirtualKeyboardProps {
   value: string

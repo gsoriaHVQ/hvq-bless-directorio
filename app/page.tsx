@@ -30,17 +30,18 @@ export default function HomePage() {
             </Button>
           </Link>
         </div>
-        {/* Banner inferior homogéneo y proporcional */
-        }
-        <div className="mt-20 md:mt-24 w-full max-w-7xl md:max-w-screen-2xl px-2 md:px-4">
-          <div className="relative w-full" style={{ aspectRatio: '2048 / 737' }}>
-            <Image
-              src="/images/KIOSKO_BANNERS_Directorio Médico-04.png"
-              alt="Encuentra a tu especialista en nuestro Directorio Médico"
-              fill
-              className="object-contain rounded-2xl"
-              priority
-            />
+        {/* Banner inferior homogéneo y proporcional */}
+        <div className="mt-20 md:mt-24 w-full px-4">
+          <div className="mx-auto w-full max-w-6xl">
+            <div className="relative w-full rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden" style={{ aspectRatio: '2048 / 737' }}>
+              <Image
+                src="/images/KIOSKO_BANNERS_Directorio Médico-04.png"
+                alt="Encuentra a tu especialista en nuestro Directorio Médico"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useRouter, useParams } from "next/navigation"
 import { apiService } from "@/lib/api-service"
+import { extractHHmm, formatHHmmTo12h } from "@/lib/utils"
 
 // Normaliza textos a slug: minúsculas, sin acentos, sólo [a-z0-9-]
 const slugify = (input: string): string => {
@@ -45,10 +46,11 @@ export default function SchedulePage() {
   const router = useRouter()
   const { doctor: doctorSlug, specialty: specialtySlug } = useParams<{ specialty: string; doctor: string }>()
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null)
-  const [doctorSchedules, setDoctorSchedules] = useState<Record<string, DoctorSchedule> | null>(null)
+  const [doctorSchedules, setDoctorSchedules] = useState<Record<string, DoctorSchedule[]> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [selectedKind, setSelectedKind] = useState<'consulta' | 'procedimiento' | null>(null)
   const detailsRef = useRef<HTMLDivElement | null>(null)
   const [photoError, setPhotoError] = useState(false)
 
@@ -63,55 +65,6 @@ export default function SchedulePage() {
     sunday: "Domingo",
   }
 
-  // Formatea diferentes tipos de hora a formato 12h (8:00AM)
-  const formatTimeTo12h = (value: unknown): string => {
-    if (value == null) return ''
-    const raw = String(value).trim()
-    if (!raw) return ''
-    // ISO date
-    if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(raw)) {
-      const d = new Date(raw)
-      if (!isNaN(d.getTime())) {
-        const h = d.getHours()
-        const m = d.getMinutes()
-        const period = h >= 12 ? 'PM' : 'AM'
-        const hh = h % 12 === 0 ? 12 : h % 12
-        return `${hh}:${m.toString().padStart(2, '0')}${period}`
-      }
-    }
-    // HH:mm
-    if (/^\d{2}:\d{2}$/.test(raw)) {
-      const [hStr, mStr] = raw.split(':')
-      const h = parseInt(hStr, 10)
-      const m = parseInt(mStr, 10)
-      const period = h >= 12 ? 'PM' : 'AM'
-      const hh = h % 12 === 0 ? 12 : h % 12
-      return `${hh}:${m.toString().padStart(2, '0')}${period}`
-    }
-    // HHmm
-    if (/^\d{3,4}$/.test(raw)) {
-      const padded = raw.padStart(4, '0')
-      const h = parseInt(padded.slice(0, 2), 10)
-      const m = parseInt(padded.slice(2), 10)
-      const period = h >= 12 ? 'PM' : 'AM'
-      const hh = h % 12 === 0 ? 12 : h % 12
-      return `${hh}:${m.toString().padStart(2, '0')}${period}`
-    }
-    return raw
-  }
-
-  const formatHHmmTo12h = (raw: string): string => {
-    if (!raw) return ''
-    const cleaned = raw.includes(':') ? raw.replace(':', '') : raw
-    if (cleaned.length < 3) return raw
-    const hours24 = parseInt(cleaned.slice(0, 2), 10)
-    const minutes = parseInt(cleaned.slice(2, 4) || '0', 10)
-    if (isNaN(hours24) || isNaN(minutes)) return raw
-    const period = hours24 >= 12 ? 'PM' : 'AM'
-    const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12
-    const minutesStr = minutes.toString().padStart(2, '0')
-    return `${hours12}:${minutesStr}${period}`
-  }
 
   const isProcedure = (tipo?: string) => {
     const t = (tipo || '').toLowerCase()
@@ -204,22 +157,24 @@ export default function SchedulePage() {
           ? (detalladasRes.data as any[])
           : []
 
-        const formattedSchedules: Record<string, DoctorSchedule> = {}
+        const formattedSchedules: Record<string, DoctorSchedule[]> = {}
         detalladas.forEach((item: any) => {
           const dayKey = normalizeDayKey(String(item.diaNombre || ''))
           if (!daysOfWeek.includes(dayKey)) return
           const rawInicio = (item.horaInicioHHmm ?? item.hora_inicio ?? item.horaInicio ?? item.hora) as unknown
           const rawFin = (item.horaFinHHmm ?? item.hora_fin ?? item.horaFin ?? item.horarioFin) as unknown
-          const inicio = formatTimeTo12h(rawInicio)
-          const fin = formatTimeTo12h(rawFin)
+          const inicio = formatHHmmTo12h(extractHHmm(rawInicio))
+          const fin = formatHHmmTo12h(extractHHmm(rawFin))
           const time = fin ? `${inicio} - ${fin}` : inicio
-          formattedSchedules[dayKey] = {
+          const entry: DoctorSchedule = {
             time,
             room: item.consultorioDescripcion || 'Consultorio no asignado',
             building: item.edificioDescripcion || 'Edificio Principal',
             floor: item.piso || (item as any).pisoDescripcion || (item as any).des_piso || undefined,
             tipo: item.tipoTexto || undefined,
           }
+          if (!formattedSchedules[dayKey]) formattedSchedules[dayKey] = []
+          formattedSchedules[dayKey].push(entry)
         })
 
         setDoctorSchedules(formattedSchedules)
@@ -240,17 +195,17 @@ export default function SchedulePage() {
 
   const consultaDays = useMemo(() => {
     return daysOfWeek.filter((day) => {
-      const s = (doctorSchedules || {})[day]
-      if (!s) return false
-      return isConsulta(s.tipo)
+      const list = (doctorSchedules || {})[day]
+      if (!list || list.length === 0) return false
+      return list.some((s) => isConsulta(s.tipo))
     })
   }, [doctorSchedules])
 
   const procedimientoDays = useMemo(() => {
     return daysOfWeek.filter((day) => {
-      const s = (doctorSchedules || {})[day]
-      if (!s) return false
-      return isProcedure(s.tipo)
+      const list = (doctorSchedules || {})[day]
+      if (!list || list.length === 0) return false
+      return list.some((s) => isProcedure(s.tipo))
     })
   }, [doctorSchedules])
 
@@ -415,7 +370,7 @@ export default function SchedulePage() {
                       return (
                         <Card
                           key={day}
-                          onClick={() => setSelectedDay(day)}
+                          onClick={() => { setSelectedDay(day); setSelectedKind('consulta') }}
                           className={`consultation-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center h-24 w-full text-center cursor-pointer transition-all duration-200 hover:shadow-md`}
                         >
                           <CardTitle className="consultation-day-title text-lg font-semibold text-[#7F0C43] mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
@@ -451,7 +406,7 @@ export default function SchedulePage() {
                       return (
                         <Card
                           key={day}
-                          onClick={() => setSelectedDay(day)}
+                          onClick={() => { setSelectedDay(day); setSelectedKind('procedimiento') }}
                           className={`procedure-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center h-24 w-full text-center cursor-pointer transition-all duration-200 hover:shadow-md`}
                         >
                           <CardTitle className="procedure-day-title text-lg font-semibold text-[#7F0C43] mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
@@ -482,34 +437,55 @@ export default function SchedulePage() {
                   </CardTitle>
                 </CardHeader>
               <CardContent className="doctor-schedule-details-content">
-                <p className="doctor-schedule-details-row">
-                  <CalendarCheckIcon className="doctor-schedule-details-icon" />
-                  <span className="doctor-schedule-details-label">Horario:</span>{' '}
-                  {doctorSchedules[selectedDay].time}
-                </p>
-                <p className="doctor-schedule-details-row flex items-center gap-2 mb-3">
-                  <DoorOpenIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                  <span className="doctor-schedule-details-label font-medium">Consultorio:</span>
-                  <span>{doctorSchedules[selectedDay].room}</span>
-                </p>
-                <p className="doctor-schedule-details-row flex items-center gap-2 mb-3">
-                  <BuildingIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                  <span className="doctor-schedule-details-label font-medium">Edificio:</span>
-                  <span>{doctorSchedules[selectedDay].building}</span>
-                </p>
-                <p className="doctor-schedule-details-row flex items-center gap-2">
-                  <MapPinIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                  <span className="doctor-schedule-details-label font-medium">Piso:</span>
-                  <span>{doctorSchedules[selectedDay].floor || 'No especificado'}</span>
-                </p>
+                {(doctorSchedules[selectedDay] || [])
+                  .filter(sched => {
+                    if (!selectedKind) return true
+                    return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                  })
+                  .map((sched, idx) => (
+                  <div key={idx} className="mb-4 last:mb-0">
+                    <p className="doctor-schedule-details-row">
+                      <CalendarCheckIcon className="doctor-schedule-details-icon" />
+                      <span className="doctor-schedule-details-label">Horario:</span>{' '}
+                      {sched.time} {sched.tipo ? `(${sched.tipo})` : ''}
+                    </p>
+                    <p className="doctor-schedule-details-row flex items-center gap-2 mb-2">
+                      <DoorOpenIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                      <span className="doctor-schedule-details-label font-medium">Consultorio:</span>
+                      <span>{sched.room}</span>
+                    </p>
+                    <p className="doctor-schedule-details-row flex items-center gap-2 mb-2">
+                      <BuildingIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                      <span className="doctor-schedule-details-label font-medium">Edificio:</span>
+                      <span>{sched.building}</span>
+                    </p>
+                    <p className="doctor-schedule-details-row flex items-center gap-2">
+                      <MapPinIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                      <span className="doctor-schedule-details-label font-medium">Piso:</span>
+                      <span>{sched.floor || 'No especificado'}</span>
+                    </p>
+                  </div>
+                ))}
                 </CardContent>
               </Card>
 
               <div className="w-full max-w-3xl mx-auto">
                 <InteractiveMap
-                  consultorio={doctorSchedules[selectedDay].room}
-                  building={doctorSchedules[selectedDay].building}
-                  floor={doctorSchedules[selectedDay].floor}
+                  consultorio={((doctorSchedules[selectedDay] || [])
+                    .filter(sched => {
+                      if (!selectedKind) return true
+                      return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                    })[0])?.room}
+                  building={((doctorSchedules[selectedDay] || [])
+                    .filter(sched => {
+                      if (!selectedKind) return true
+                      return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                    })[0])?.building}
+                  floor={((doctorSchedules[selectedDay] || [])
+                    .filter(sched => {
+                      if (!selectedKind) return true
+                      return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                    })[0])?.floor}
                 />
               </div>
           </div>

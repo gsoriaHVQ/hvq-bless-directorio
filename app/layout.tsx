@@ -27,7 +27,7 @@ html {
         `}</style>
       </head>
       <body>
-        <IdleRedirect timeoutMs={40000} homePath="/">
+        <IdleRedirect timeoutMs={90000} homePath="/">
           {children}
         </IdleRedirect>
       </body>
