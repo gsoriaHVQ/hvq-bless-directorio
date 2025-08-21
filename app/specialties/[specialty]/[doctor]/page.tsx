@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import "@/styles/pages.css"
 import { notFound } from "next/navigation"
 import { useState, useEffect, useMemo, useRef } from "react"
-import { DoorOpenIcon, BuildingIcon, CalendarCheckIcon, ClockIcon, MapPinIcon, AlertCircleIcon, UserRoundIcon as UserRoundMedical, ClipboardListIcon, ScissorsIcon } from 'lucide-react' 
+import { DoorOpenIcon, BuildingIcon, CalendarCheckIcon, ClockIcon, MapPinIcon, AlertCircleIcon, UserRoundIcon as UserRoundMedical, ClipboardListIcon, ScissorsIcon } from 'lucide-react'
 import { InteractiveMap } from "@/components/interactive-map"
 import axios from "axios"
 import { getAccessToken } from "@/lib/auth"
@@ -164,7 +164,7 @@ export default function SchedulePage() {
           const inicio = formatHHmmTo12h(extractHHmm(rawInicio))
           const fin = formatHHmmTo12h(extractHHmm(rawFin))
           const time = fin ? `${inicio} - ${fin}` : inicio
-          
+
           const entry: DoctorSchedule = {
             time,
             room: item.consultorioDescripcion || 'No especificado',
@@ -232,10 +232,10 @@ export default function SchedulePage() {
                 <Skeleton className="h-6 w-1/2 bg-[#E5E5E5]" />
               </div>
             </div>
-            
+
             <div className="w-full max-w-4xl space-y-4">
               <Skeleton className="h-8 w-64 mx-auto bg-[#E5E5E5]" />
-              
+
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 {[...Array(7)].map((_, i) => (
                   <Skeleton key={i} className="h-32 rounded-lg bg-[#E5E5E5]" />
@@ -257,7 +257,7 @@ export default function SchedulePage() {
             <h2 className="text-2xl font-bold text-[#7F0C43] mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>Error al cargar los datos</h2>
             <p className="text-[#7F0C43] mb-6" style={{ fontFamily: "Arial, sans-serif" }}>{error}</p>
             <div className="flex justify-center gap-4">
-              <Button 
+              <Button
                 variant="destructive"
                 onClick={() => window.location.reload()}
                 className="bg-[#7F0C43] hover:bg-[#C84D80] text-white"
@@ -265,7 +265,7 @@ export default function SchedulePage() {
               >
                 Reintentar
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => router.back()}
                 className="border-[#7F0C43] text-[#7F0C43] hover:bg-[#F9F4F6]"
@@ -291,9 +291,9 @@ export default function SchedulePage() {
         <div className="flex flex-col md:flex-row items-center gap-6 mb-10 bg-white rounded-xl shadow-sm p-6 border border-[#E5E5E5]">
           <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-[#F9F4F6] overflow-hidden flex items-center justify-center">
             {doctorInfo.photo && !photoError ? (
-              <img 
-                src={doctorInfo.photo} 
-                alt={`Foto del Dr. ${doctorInfo.name}`} 
+              <img
+                src={doctorInfo.photo}
+                alt={`Foto del Dr. ${doctorInfo.name}`}
                 className="w-full h-full object-cover"
                 onError={() => setPhotoError(true)}
               />
@@ -301,11 +301,11 @@ export default function SchedulePage() {
               <UserRoundMedical className="w-16 h-16 md:w-20 md:h-20 text-[#7F0C43]" />
             )}
           </div>
-          
+
           <div className="text-center md:text-left">
             <h1 className="text-3xl font-bold text-[#333333] mb-1" style={{ fontFamily: "'Century Gothic', sans-serif" }}>Dr. {doctorInfo.name}</h1>
             <p className="text-lg text-[#7F0C43] font-medium mb-3" style={{ fontFamily: "'Century Gothic', sans-serif" }}>{doctorInfo.specialty}</p>
-            
+
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
               {availableDays.length > 0 && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#F9F4F6] text-[#7F0C43] text-sm font-medium border border-[#C84D80]" style={{ fontFamily: "Arial, sans-serif" }}>
@@ -332,7 +332,7 @@ export default function SchedulePage() {
                   <p className="text-[#333333] mb-4" style={{ fontFamily: "Arial, sans-serif" }}>El Dr. {doctorInfo.name} no tiene horarios de consulta programados actualmente.</p>
                   <p className="text-[#666666]" style={{ fontFamily: "Arial, sans-serif" }}>Por favor, contacta directamente con el consultorio o regresa más tarde.</p>
                   <div className="mt-6">
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={() => router.back()}
                       className="border-[#7F0C43] text-[#7F0C43] hover:bg-[#F9F4F6]"
@@ -346,11 +346,7 @@ export default function SchedulePage() {
             </div>
           )}
 
-                    <div className={`w-full max-w-6xl mx-auto grid gap-8 ${
-            consultaDays.length > 0 && procedimientoDays.length > 0 
-              ? 'grid-cols-1 lg:grid-cols-2' 
-              : 'grid-cols-1 max-w-2xl'
-          }`}>
+          <div className="w-full max-w-2xl mx-auto space-y-8">
             {/* Días de Consulta */}
             {consultaDays.length > 0 && (
               <Card className="consultation-days-card bg-white border border-[#E5E5E5] shadow-sm">
@@ -365,7 +361,7 @@ export default function SchedulePage() {
                 <CardContent className="consultation-days-content">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {consultaDays.map((day) => {
-                      const isSelected = selectedDay === day
+                      const isSelected = selectedDay === day && selectedKind === 'consulta'
                       return (
                         <Card
                           key={day}
@@ -401,7 +397,7 @@ export default function SchedulePage() {
                 <CardContent className="procedure-days-content">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {procedimientoDays.map((day) => {
-                      const isSelected = selectedDay === day
+                      const isSelected = selectedDay === day && selectedKind === 'procedimiento'
                       return (
                         <Card
                           key={day}
@@ -432,9 +428,9 @@ export default function SchedulePage() {
             <Card className="doctor-schedule-details-card w-full max-w-3xl mx-auto">
               <CardHeader className="doctor-schedule-details-header">
                 <CardTitle className="doctor-schedule-details-title">
-                    Detalles para {dayNames[selectedDay]}
-                  </CardTitle>
-                </CardHeader>
+                  Detalles para {dayNames[selectedDay]}
+                </CardTitle>
+              </CardHeader>
               <CardContent className="doctor-schedule-details-content">
                 {(doctorSchedules[selectedDay] || [])
                   .filter(sched => {
@@ -442,51 +438,51 @@ export default function SchedulePage() {
                     return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
                   })
                   .map((sched, idx) => (
-                  <div key={idx} className="mb-4 last:mb-0">
-                    <p className="doctor-schedule-details-row">
-                      <CalendarCheckIcon className="doctor-schedule-details-icon" />
-                      <span className="doctor-schedule-details-label">Horario:</span>{' '}
-                      {sched.time} {sched.tipo ? `(${sched.tipo})` : ''}
-                    </p>
-                    <p className="doctor-schedule-details-row flex items-center gap-2 mb-2">
-                      <DoorOpenIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                      <span className="doctor-schedule-details-label font-medium">Consultorio:</span>
-                      <span>{sched.room}</span>
-                    </p>
-                    <p className="doctor-schedule-details-row flex items-center gap-2 mb-2">
-                      <BuildingIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                      <span className="doctor-schedule-details-label font-medium">Edificio:</span>
-                      <span>{sched.building}</span>
-                    </p>
-                    <p className="doctor-schedule-details-row flex items-center gap-2">
-                      <MapPinIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                      <span className="doctor-schedule-details-label font-medium">Piso:</span>
-                      <span>{sched.floor || 'No especificado'}</span>
-                    </p>
-                  </div>
-                ))}
-                </CardContent>
-              </Card>
+                    <div key={idx} className="mb-4 last:mb-0">
+                      <p className="doctor-schedule-details-row">
+                        <CalendarCheckIcon className="doctor-schedule-details-icon" />
+                        <span className="doctor-schedule-details-label">Horario:</span>{' '}
+                        {sched.time} {sched.tipo ? `(${sched.tipo})` : ''}
+                      </p>
+                      <p className="doctor-schedule-details-row flex items-center gap-2 mb-2">
+                        <DoorOpenIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                        <span className="doctor-schedule-details-label font-medium">Consultorio:</span>
+                        <span>{sched.room}</span>
+                      </p>
+                      <p className="doctor-schedule-details-row flex items-center gap-2 mb-2">
+                        <BuildingIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                        <span className="doctor-schedule-details-label font-medium">Edificio:</span>
+                        <span>{sched.building}</span>
+                      </p>
+                      <p className="doctor-schedule-details-row flex items-center gap-2">
+                        <MapPinIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                        <span className="doctor-schedule-details-label font-medium">Piso:</span>
+                        <span>{sched.floor || 'No especificado'}</span>
+                      </p>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
 
-              <div className="w-full max-w-3xl mx-auto">
-                <InteractiveMap
-                  consultorio={((doctorSchedules[selectedDay] || [])
-                    .filter(sched => {
-                      if (!selectedKind) return true
-                      return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
-                    })[0])?.room}
-                  building={((doctorSchedules[selectedDay] || [])
-                    .filter(sched => {
-                      if (!selectedKind) return true
-                      return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
-                    })[0])?.building}
-                  floor={((doctorSchedules[selectedDay] || [])
-                    .filter(sched => {
-                      if (!selectedKind) return true
-                      return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
-                    })[0])?.floor}
-                />
-              </div>
+            <div className="w-full max-w-3xl mx-auto">
+              <InteractiveMap
+                consultorio={((doctorSchedules[selectedDay] || [])
+                  .filter(sched => {
+                    if (!selectedKind) return true
+                    return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                  })[0])?.room}
+                building={((doctorSchedules[selectedDay] || [])
+                  .filter(sched => {
+                    if (!selectedKind) return true
+                    return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                  })[0])?.building}
+                floor={((doctorSchedules[selectedDay] || [])
+                  .filter(sched => {
+                    if (!selectedKind) return true
+                    return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                  })[0])?.floor}
+              />
+            </div>
           </div>
         )}
 

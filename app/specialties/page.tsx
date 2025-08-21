@@ -20,7 +20,7 @@ interface Especialidad {
   icono: string | null
 }
 
-export default function SpecialtiesPage() { 
+export default function SpecialtiesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
   const [specialties, setSpecialties] = useState<Especialidad[]>([])
@@ -68,25 +68,28 @@ export default function SpecialtiesPage() {
     fetchSpecialties()
   }, [])
 
-  // Dividir especialidades en columnas alternadas
+  // Dividir especialidades en 3 columnas
   const columns = useMemo(() => {
-    const filtered = searchTerm 
-      ? specialties.filter(s => 
-          s.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filtered = searchTerm
+      ? specialties.filter(s =>
+        s.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()))
       : specialties
 
-    const leftColumn: Especialidad[] = []
-    const rightColumn: Especialidad[] = []
-    
+    const column1: Especialidad[] = []
+    const column2: Especialidad[] = []
+    const column3: Especialidad[] = []
+
     filtered.forEach((specialty, index) => {
-      if (index % 2 === 0) {
-        leftColumn.push(specialty)
+      if (index % 3 === 0) {
+        column1.push(specialty)
+      } else if (index % 3 === 1) {
+        column2.push(specialty)
       } else {
-        rightColumn.push(specialty)
+        column3.push(specialty)
       }
     })
-    
-    return { leftColumn, rightColumn, total: filtered.length }
+
+    return { column1, column2, column3, total: filtered.length }
   }, [searchTerm, specialties])
 
   const handleEnter = () => {
@@ -109,7 +112,7 @@ export default function SpecialtiesPage() {
         <div className="error-container">
           <h2>Error</h2>
           <p>{error}</p>
-          <button 
+          <button
             className="retry-button"
             onClick={() => window.location.reload()}
           >
@@ -122,56 +125,43 @@ export default function SpecialtiesPage() {
 
   return (
     <DirectorioLayout>
-      <div className="specialties-container">
+      <div className="specialties-container" style={{ paddingTop: '200px' }}>
         <div className="sticky top-24 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
           <div className="w-full px-0">
             <h1 className="specialties-title">Especialidades Médicas</h1>
-            <div className="specialties-input-container" style={{maxWidth: 'none'}}>
-              <div className="specialties-input-wrapper">
+            <div className="doctor-search-input-container">
+              <div className="doctor-search-input-wrapper">
                 <Input
                   type="text"
                   placeholder="Buscar especialidad..."
                   value={searchTerm}
                   onFocus={() => setIsKeyboardOpen(true)}
                   readOnly
-                  className="specialties-input"
+                  className="doctor-search-input"
                 />
-                <SearchIcon className="specialties-search-icon-right" />
+                <SearchIcon className="doctor-search-icon" />
               </div>
             </div>
           </div>
         </div>
-        <div className="specialties-input-container hidden">{/* antiguo contenedor, se deja oculto */}
-          <div className="specialties-input-wrapper">
-            <Input
-              type="text"
-              placeholder="Buscar especialidad..."
-              value={searchTerm}
-              onFocus={() => setIsKeyboardOpen(true)}
-              readOnly
-              className="specialties-input"
-            />
-            <SearchIcon className="specialties-search-icon-right" />
-          </div>
-        </div>
 
         {columns.total === 1 ? (
-          <div className="w-full flex justify-center" style={{marginTop: '2rem'}}>
+          <div className="w-full flex justify-center" style={{ marginTop: '2rem' }}>
             {(() => {
-              const specialty = columns.leftColumn[0] || columns.rightColumn[0]
+              const specialty = columns.column1[0] || columns.column2[0] || columns.column3[0]
               if (!specialty) return null
               return (
-                <Link 
-                  key={specialty.especialidadId} 
-                  href={`/specialties/${specialty.especialidadId}`} 
+                <Link
+                  key={specialty.especialidadId}
+                  href={`/specialties/${specialty.especialidadId}`}
                   passHref
                 >
                   <Card className="specialties-card group">
                     <CardContent className="specialties-card-content">
                       {specialty.icono ? (
                         <div className="specialties-icon-container">
-                          <img 
-                            src={specialty.icono} 
+                          <img
+                            src={specialty.icono}
                             alt={`Icono de ${specialty.descripcion}`}
                             className="specialties-card-icon"
                             onError={(e) => {
@@ -194,21 +184,21 @@ export default function SpecialtiesPage() {
             })()}
           </div>
         ) : (
-          <div className="alternating-columns-layout" style={{marginTop: '2rem'}}>
-            {/* Columna izquierda (A, C, E, ...) */}
-            <div className="column left-column">
-              {columns.leftColumn.map((specialty) => (
-                <Link 
-                  key={specialty.especialidadId} 
-                  href={`/specialties/${specialty.especialidadId}`} 
+          <div className="three-columns-layout" style={{ marginTop: '2rem' }}>
+            {/* Columna 1 */}
+            <div className="column">
+              {columns.column1.map((specialty) => (
+                <Link
+                  key={specialty.especialidadId}
+                  href={`/specialties/${specialty.especialidadId}`}
                   passHref
                 >
                   <Card className="specialties-card group">
                     <CardContent className="specialties-card-content">
                       {specialty.icono ? (
                         <div className="specialties-icon-container">
-                          <img 
-                            src={specialty.icono} 
+                          <img
+                            src={specialty.icono}
                             alt={`Icono de ${specialty.descripcion}`}
                             className="specialties-card-icon"
                             onError={(e) => {
@@ -230,20 +220,55 @@ export default function SpecialtiesPage() {
               ))}
             </div>
 
-            {/* Columna derecha (B, D, F, ...) */}
-            <div className="column right-column">
-              {columns.rightColumn.map((specialty) => (
-                <Link 
-                  key={specialty.especialidadId} 
-                  href={`/specialties/${specialty.especialidadId}`} 
+            {/* Columna 2 */}
+            <div className="column">
+              {columns.column2.map((specialty) => (
+                <Link
+                  key={specialty.especialidadId}
+                  href={`/specialties/${specialty.especialidadId}`}
                   passHref
                 >
                   <Card className="specialties-card group">
                     <CardContent className="specialties-card-content">
                       {specialty.icono ? (
                         <div className="specialties-icon-container">
-                          <img 
-                            src={specialty.icono} 
+                          <img
+                            src={specialty.icono}
+                            alt={`Icono de ${specialty.descripcion}`}
+                            className="specialties-card-icon"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="specialties-default-icon">
+                          <span className="text-2xl">🏥</span>
+                        </div>
+                      )}
+                      <CardTitle className="specialties-card-title">
+                        {specialty.descripcion || 'Especialidad sin nombre'}
+                      </CardTitle>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+
+            {/* Columna 3 */}
+            <div className="column">
+              {columns.column3.map((specialty) => (
+                <Link
+                  key={specialty.especialidadId}
+                  href={`/specialties/${specialty.especialidadId}`}
+                  passHref
+                >
+                  <Card className="specialties-card group">
+                    <CardContent className="specialties-card-content">
+                      {specialty.icono ? (
+                        <div className="specialties-icon-container">
+                          <img
+                            src={specialty.icono}
                             alt={`Icono de ${specialty.descripcion}`}
                             className="specialties-card-icon"
                             onError={(e) => {
@@ -267,7 +292,7 @@ export default function SpecialtiesPage() {
           </div>
         )}
 
-        {columns.leftColumn.length === 0 && columns.rightColumn.length === 0 && (
+        {columns.column1.length === 0 && columns.column2.length === 0 && columns.column3.length === 0 && (
           <p className="specialties-empty">No se encontraron especialidades.</p>
         )}
       </div>
