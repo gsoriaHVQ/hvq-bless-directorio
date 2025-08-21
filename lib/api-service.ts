@@ -483,11 +483,7 @@ class ApiService {
          )
        }
        
-       // 4. Si no encuentra el edificio, usar fallback
-       if (!edificioDescripcion) {
-         edificioDescripcion = "Edificio Bless"
-         // console.debug(`No se encontró edificio para código ${buildingCode}, usando fallback: ${edificioDescripcion}`)
-       }
+       // 4. Si no encuentra el edificio, no usar fallback artificial; dejar vacío
        
        // console.debug(`Edificio descripción final:`, edificioDescripcion)
        
@@ -495,22 +491,15 @@ class ApiService {
        const pisoCodigo = consultorio?.piso ?? (consultorio?.__raw as any)?.CD_PISO ?? (consultorio?.__raw as any)?.codigo_piso
        // console.debug(`Piso código desde consultorio:`, pisoCodigo)
        
-               // 6. Formatear el piso como "Piso X" (solo 7 pisos)
-        let pisoFormateado = ''
-        if (pisoCodigo) {
-          // Limitar a solo 7 pisos (1-7)
-          const pisoNum = parseInt(String(pisoCodigo))
-          if (pisoNum >= 1 && pisoNum <= 7) {
-            pisoFormateado = `Piso ${pisoNum}`
-          } else {
-            // Si el piso es mayor a 7, usar un piso del 1-7 basado en el código
-            const pisoLimitado = ((pisoNum - 1) % 7) + 1
-            pisoFormateado = `Piso ${pisoLimitado}`
-          }
-        } else {
-          pisoFormateado = "Piso 1" // Fallback si no encuentra el piso
-          // console.debug(`No se encontró piso para consultorio ${codigoConsultorio}, usando fallback: ${pisoFormateado}`)
-        }
+       // 6. Usar el piso real si existe; de lo contrario, dejar vacío
+       let pisoFormateado = ''
+       if (pisoCodigo != null && String(pisoCodigo).trim() !== '') {
+         const pisoNum = Number(pisoCodigo)
+         pisoFormateado = Number.isFinite(pisoNum) ? `Piso ${pisoNum}` : String(pisoCodigo)
+       }
+       
+       // 6b. Descripción del piso desde el catálogo de consultorios (si existe)
+       const pisoDescripcion = consultorio?.des_piso ? String(consultorio.des_piso) : ''
        
        // console.debug(`Piso formateado:`, pisoFormateado)
 
@@ -542,12 +531,15 @@ class ApiService {
         diaNombre,
         horaInicioHHmm: horaInicio,
         horaFinHHmm: horaFin,
-                 consultorioDescripcion: consultorio?.descripcion_consultorio || consultorio?.__raw ? (consultorio.__raw as any)?.DES_CONSULTORIO : "",
+        consultorioDescripcion: consultorio?.descripcion_consultorio
+          ? String(consultorio.descripcion_consultorio)
+          : (consultorio?.__raw ? String((consultorio.__raw as any)?.DES_CONSULTORIO || '') : ''),
         consultorioCodigo: consultorio?.codigo_consultorio,
         edificioDescripcion,
         tipoTexto: decodeTipo((a as any).tipo),
 
-                          piso: pisoFormateado,
+        piso: pisoFormateado,
+        pisoDescripcion,
         buildingCode
       }
     }).filter(Boolean) // Filtrar nulls

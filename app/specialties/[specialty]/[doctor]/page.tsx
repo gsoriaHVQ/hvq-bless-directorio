@@ -95,49 +95,45 @@ export default function SchedulePage() {
         setLoading(true)
         const token = await getAccessToken()
 
-        // 1. Resolver especialidad por ID (si el parámetro es numérico) o por slug (fallback)
+        // 1. Resolver especialidad por ID o por slug de manera directa (sin fallbacks extra)
         const isSpecialtyId = /^\d+$/.test(specialtySlug)
         let foundSpecialty: any
         if (isSpecialtyId) {
-          const specialtyResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/especialidades/${specialtySlug}`, {
+          const res = await axios.get(`http://10.129.180.161:36560/api3/v1/especialidades/${specialtySlug}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
-          foundSpecialty = specialtyResponse.data
+          foundSpecialty = res.data
         } else {
-          const specialtiesResponse = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
+          const res = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
             headers: { 'Authorization': `Bearer ${token}` }
           })
-          const specialtiesData = specialtiesResponse.data
-          foundSpecialty = specialtiesData.find((spec: any) =>
-            slugify(String(spec.descripcion || '')) === slugify(String(specialtySlug))
-          )
+          const list = Array.isArray(res.data) ? res.data : []
+          foundSpecialty = list.find((spec: any) => slugify(String(spec.descripcion || '')) === slugify(String(specialtySlug)))
         }
 
         if (!foundSpecialty) throw new Error('Especialidad no encontrada')
 
-        // 2. Resolver médico por ID (si el parámetro es numérico) o por slug (fallback)
+        // 2. Resolver médico por ID o por slug de manera directa
         const isDoctorId = /^\d+$/.test(doctorSlug)
         let doctorData: any
         let doctorIdToUse: number
         if (isDoctorId) {
-          const doctorDetailResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${doctorSlug}`, {
+          const res = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${doctorSlug}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
-          doctorData = doctorDetailResponse.data
+          doctorData = res.data
           doctorIdToUse = doctorData.id
         } else {
-          const doctorsResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/especialidad/${foundSpecialty.especialidadId}`, {
+          const res = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/especialidad/${foundSpecialty.especialidadId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
-          const doctorsData = doctorsResponse.data
-          const foundDoctor = doctorsData.find((doc: any) =>
-            slugify(String(doc.nombres || '')) === slugify(String(doctorSlug))
-          )
+          const list = Array.isArray(res.data) ? res.data : []
+          const foundDoctor = list.find((doc: any) => slugify(String(doc.nombres || '')) === slugify(String(doctorSlug)))
           if (!foundDoctor) throw new Error('Médico no encontrado')
-          const doctorDetailResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${foundDoctor.id}`, {
+          const detail = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${foundDoctor.id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
-          doctorData = doctorDetailResponse.data
+          doctorData = detail.data
           doctorIdToUse = foundDoctor.id
         }
 
@@ -157,19 +153,7 @@ export default function SchedulePage() {
           ? (detalladasRes.data as any[])
           : []
 
-        // Función para asignar consultorio y piso por día (solo 7 pisos)
-        const getConsultorioByDay = (dayKey: string) => {
-          const consultoriosPorDia: Record<string, { room: string; floor: string }> = {
-            monday: { room: 'Consultorio 101', floor: '1' },
-            tuesday: { room: 'Consultorio 202', floor: '2' },
-            wednesday: { room: 'Consultorio 303', floor: '3' },
-            thursday: { room: 'Consultorio 404', floor: '4' },
-            friday: { room: 'Consultorio 505', floor: '5' },
-            saturday: { room: 'Consultorio 606', floor: '6' },
-            sunday: { room: 'Consultorio 707', floor: '7' }
-          }
-          return consultoriosPorDia[dayKey] || { room: 'Consultorio 101', floor: '1' }
-        }
+        // Eliminar datos hardcodeados para consultorio/piso; usar solo lo que entregue la API
 
         const formattedSchedules: Record<string, DoctorSchedule[]> = {}
         detalladas.forEach((item: any) => {
@@ -181,14 +165,11 @@ export default function SchedulePage() {
           const fin = formatHHmmTo12h(extractHHmm(rawFin))
           const time = fin ? `${inicio} - ${fin}` : inicio
           
-          // Obtener consultorio y piso por día
-          const { room, floor } = getConsultorioByDay(dayKey)
-          
           const entry: DoctorSchedule = {
             time,
-            room: item.consultorioDescripcion || room,
-            building: item.edificioDescripcion || 'Edificio Bless',
-            floor: item.piso || (item as any).pisoDescripcion || (item as any).des_piso || floor,
+            room: item.consultorioDescripcion || 'No especificado',
+            building: item.edificioDescripcion || (item as any).buildingCode || 'No especificado',
+            floor: (item as any).pisoDescripcion || item.piso || (item as any).des_piso || 'No especificado',
             tipo: item.tipoTexto || undefined,
           }
           if (!formattedSchedules[dayKey]) formattedSchedules[dayKey] = []

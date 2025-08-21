@@ -54,40 +54,33 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
       try {
         const token = await getAccessToken()
 
-        // 1. Obtener información de la especialidad (con fallback si 404)
-        try {
+        // 1. Obtener información de la especialidad sin fallbacks cruzados
+        const isId = /^\d+$/.test(String(specialtyId))
+        let resolvedIdForFilter = String(specialtyId)
+        if (isId) {
           const specialtyResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/especialidades/${specialtyId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Accept': 'application/json'
             }
           })
-          if (!specialtyResponse.data?.descripcion) {
-            throw new Error('Especialidad no encontrada')
-          }
+          if (!specialtyResponse.data?.descripcion) throw new Error('Especialidad no encontrada')
           setSpecialtyName(specialtyResponse.data.descripcion)
-          const resolved = String(specialtyResponse.data.especialidadId ?? specialtyId)
-          setResolvedSpecialtyId(resolved)
-          var resolvedIdForFilter = resolved
-        } catch (e) {
-          // Fallback: consultar catálogo de especialidades/agenda y resolver por ID o slug
-          const fallbackRes = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
+          resolvedIdForFilter = String(specialtyResponse.data.especialidadId ?? specialtyId)
+          setResolvedSpecialtyId(resolvedIdForFilter)
+        } else {
+          const res = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Accept': 'application/json'
             }
           })
-          const list = Array.isArray(fallbackRes.data) ? fallbackRes.data : []
-          const isId = /^\d+$/.test(String(specialtyId))
-          const match = list.find((spec: any) => {
-            if (isId) return String(spec.especialidadId) === String(specialtyId)
-            return slugify(String(spec.descripcion || '')) === slugify(String(specialtyId))
-          })
+          const list = Array.isArray(res.data) ? res.data : []
+          const match = list.find((spec: any) => slugify(String(spec.descripcion || '')) === slugify(String(specialtyId)))
           if (!match) throw new Error('Especialidad no encontrada')
           setSpecialtyName(match.descripcion)
-          const resolved = String(match.especialidadId)
-          setResolvedSpecialtyId(resolved)
-          var resolvedIdForFilter = resolved
+          resolvedIdForFilter = String(match.especialidadId)
+          setResolvedSpecialtyId(resolvedIdForFilter)
         }
 
         // 2. Obtener todos los médicos con sus detalles
@@ -132,7 +125,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
               const doctor = result.value
               if (
                 doctor.especialidades?.some(
-                  (esp: Especialidad) => String(esp.especialidadId) === String(resolvedIdForFilter || specialtyId)
+                  (esp: Especialidad) => String(esp.especialidadId) === String(resolvedIdForFilter)
                 )
               ) {
                 successfulDoctors.push(doctor)
@@ -145,7 +138,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
           // 3b. Si ya son objetos completos, filtrar directamente
           doctorsData = allDoctorsResponse.data.filter((doctor: Medico) =>
             doctor.especialidades?.some(
-              (esp: Especialidad) => String(esp.especialidadId) === String(resolvedIdForFilter || specialtyId)
+              (esp: Especialidad) => String(esp.especialidadId) === String(resolvedIdForFilter)
             )
           )
         }
