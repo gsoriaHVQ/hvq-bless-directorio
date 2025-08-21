@@ -199,11 +199,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
     <DirectorioLayout>
       <div style={{ paddingTop: '200px' }}>
         <h1 className="text-4xl font-bold text-primary mb-10 text-center">Doctores en {specialtyName}</h1>
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 1d48d29e42ddf8ce60122e5b36d43da9577254c9
         {/* Mostrar todos los doctores sin filtro */}
         <div className="w-full flex justify-center">
           <div className="w-full max-w-6xl">

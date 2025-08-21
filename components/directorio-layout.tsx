@@ -33,11 +33,7 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
         <div className="mx-auto w-full max-w-6xl px-4 md:px-8 lg:px-12 h-24 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             {displayBackButton && (
-<<<<<<< HEAD
               <Button onClick={handleGoBack} className="bg-primary text-primary-foreground hover:bg-accent1 px-5 md:px-6 py-3 md:py-4 text-2xl md:text-3xl rounded-full shadow-md flex items-center gap-3">
-=======
-              <Button onClick={handleGoBack} className="bg-primary text-primary-foreground hover:bg-accent1 px-5 md:px-6 py-3 md:py-4 text-2xl md:text-3xl rounded-full flex items-center gap-3 shadow-md">
->>>>>>> 1d48d29e42ddf8ce60122e5b36d43da9577254c9
                 <ArrowLeftIcon className="w-6 h-6" />
                 Volver
               </Button>
@@ -48,11 +44,7 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
           </div>
           <div className="flex items-center gap-2">
             {pathname !== "/" && (
-<<<<<<< HEAD
               <Button onClick={handleGoHome} className="bg-primary text-primary-foreground hover:bg-accent1 px-5 md:px-6 py-3 md:py-4 text-2xl md:text-3xl rounded-full shadow-md flex items-center gap-3">
-=======
-              <Button onClick={handleGoHome} className="bg-primary text-primary-foreground hover:bg-accent1 px-5 md:px-6 py-3 md:py-4 text-2xl md:text-3xl rounded-full flex items-center gap-3 shadow-md">
->>>>>>> 1d48d29e42ddf8ce60122e5b36d43da9577254c9
                 <HomeIcon className="w-6 h-6" />
                 Inicio
               </Button>

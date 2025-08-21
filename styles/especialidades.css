@@ -97,12 +97,7 @@
 }
 
 .specialties-card-title {
-<<<<<<< HEAD
   font-size: 0.875rem; /* Reducido de 1rem a 0.875rem para que se vea más grande la imagen */
-=======
-  font-size: 0.875rem;
-  /* Reducido de 1rem para que se vea más grande la imagen */
->>>>>>> 1d48d29e42ddf8ce60122e5b36d43da9577254c9
   color: #1e293b;
   word-break: break-word;
 }
@@ -173,11 +168,6 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-<<<<<<< HEAD
-=======
-
-  .alternating-columns-layout,
->>>>>>> 1d48d29e42ddf8ce60122e5b36d43da9577254c9
   .three-columns-layout {
     flex-direction: column;
     gap: 1rem;
