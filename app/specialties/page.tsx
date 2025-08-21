@@ -141,7 +141,7 @@ export default function SpecialtiesPage() {
 
   return (
     <DirectorioLayout>
-      <div className="specialties-container" style={{ paddingTop: '200px' }}>
+      <div className="specialties-container" style={{ paddingTop: '10px' }}>
         <div className="sticky top-24 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
           <div className="w-full px-0">
             <h1 className="specialties-title">Especialidades Médicas</h1>

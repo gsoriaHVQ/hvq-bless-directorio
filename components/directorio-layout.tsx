@@ -138,14 +138,18 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
         {children}
       </main>
 
-      {/* Botón flotante Volver Arriba (icono) */}
-      {showScrollTop && (
-        <div className="fixed bottom-24 right-6 z-50">
-          <Button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Volver Arriba" className="bg-primary text-primary-foreground hover:bg-accent1 p-3 rounded-full shadow-lg">
-            <ArrowUpIcon className="w-6 h-6" />
-          </Button>
-        </div>
-      )}
+      {/* Botón flotante Volver Arriba (centrado abajo sobre el footer) */}
+{showScrollTop && (
+  <div className="fixed bottom-6 inset-x-0 flex justify-center z-50">
+    <Button
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      aria-label="Volver Arriba"
+      className="bg-primary text-primary-foreground hover:bg-accent1 p-8 rounded-full shadow-2xl"
+    >
+      <ArrowUpIcon className="w-12 h-12" />
+    </Button>
+  </div>
+)}
 
       <Footer />
     </div>

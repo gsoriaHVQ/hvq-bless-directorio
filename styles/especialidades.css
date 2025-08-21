@@ -90,7 +90,7 @@
 }
 
 .specialties-card-title {
-  font-size: 0.8rem; /* reducido 20% adicional desde 1rem */
+  font-size: 1.0rem; /* reducido 20% adicional desde 1rem */
   color: #7f0c3c;
   word-break: break-word;
   font-weight: 600;
