@@ -171,7 +171,7 @@ export default function SpecialtiesPage() {
                         </div>
                       ) : (
                         <div className="specialties-default-icon">
-                          <span className="text-2xl">🏥</span>
+                    
                         </div>
                       )}
                       <CardTitle className="specialties-card-title">
