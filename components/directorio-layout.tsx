@@ -1,8 +1,9 @@
 "use client"
 
 import { useRouter, usePathname } from "next/navigation"
+import React from "react"
 import { Button } from "@/components/ui/button"
-import { HomeIcon, ArrowLeftIcon, Clock, HandHeart } from 'lucide-react'
+import { HomeIcon, ArrowLeftIcon, ArrowUpIcon } from 'lucide-react'
 import { CurrentTime } from "@/components/current-time"
 import { Footer } from "@/components/footer"
 import type { ReactNode } from "react"
@@ -16,6 +17,7 @@ interface DirectorioLayoutProps {
 export function DirectorioLayout({ children, showBackButton = true }: DirectorioLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const [showScrollTop, setShowScrollTop] = React.useState(false)
 
   const handleGoBack = () => {
     router.back()
@@ -24,6 +26,14 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
   const handleGoHome = () => {
     router.push("/")
   }
+
+  React.useEffect(() => {
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 200)
+    }
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const displayBackButton = showBackButton && pathname !== "/"
   const isHomePage = pathname === "/"
@@ -34,8 +44,8 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
       {isHomePage ? (
         // Header original para la página de inicio
         <header className="sticky top-0 z-40 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
-          <div className="mx-auto w-full max-w-6xl px-4 md:px-8 lg:px-12 h-32 flex items-center justify-between gap-3">
-            {/* Logo y nombre del hospital */}
+          <div className="mx-auto w-full max-w-6xl px-4 md:px-8 lg:px-12 h-40 pt-4 flex items-center justify-between gap-3">
+{/* Logo y nombre del hospital */}
             <div className="flex items-center gap-4">
               {displayBackButton && (
                 <Button onClick={handleGoBack} className="bg-primary text-primary-foreground hover:bg-accent1 px-5 md:px-6 py-3 md:py-4 text-2xl md:text-3xl rounded-full shadow-md flex items-center gap-3">
@@ -55,7 +65,7 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
             </div>
             
             {/* Hora y fecha centrada */}
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center ">
               <CurrentTime />
             </div>
             
@@ -86,48 +96,56 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
                 />
               </div>
               
-              {/* Hora y fecha centrada */}
+              {/* Hora y fecha centrada (sin duplicar la hora en la segunda línea) */}
               <div className="flex items-center justify-center gap-2">
                 <CurrentTime variant="compact" />
               </div>
               
-              {/* Información del paciente */}
+              {/* Mensaje de bienvenida (sin icono) */}
               <div className="flex items-center gap-2">
-                <HandHeart className="w-6 h-6" />
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold">HOLA, HVQ PACIENTE</span>
+                  <span className="text-lg font-semibold">Bienvenido</span>
                 </div>
               </div>
             </div>
           </header>
-          
-          {/* Botones debajo del header */}
-          <div className="sticky top-24 z-30 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
-            <div className="mx-auto w-full max-w-6xl px-4 md:px-8 lg:px-12 h-16 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                {displayBackButton && (
-                  <Button onClick={handleGoBack} className="bg-primary text-primary-foreground hover:bg-accent1 px-5 md:px-6 py-3 md:py-4 text-2xl md:text-3xl rounded-full shadow-md flex items-center gap-3">
-                    <ArrowLeftIcon className="w-6 h-6" />
-                    Volver
-                  </Button>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {pathname !== "/" && (
-                  <Button onClick={handleGoHome} className="bg-primary text-primary-foreground hover:bg-accent1 px-5 md:px-6 py-3 md:py-4 text-2xl md:text-3xl rounded-full shadow-md flex items-center gap-3">
-                    <HomeIcon className="w-6 h-6" />
-                    Inicio
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
         </>
       )}
+
+      {/* Barra fija de navegación bajo el header (siempre visible al hacer scroll) */}
+      <div className={`sticky ${isHomePage ? 'top-32' : 'top-24'} z-40 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b`}>
+        <div className="mx-auto w-full max-w-6xl px-4 md:px-8 lg:px-12 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            {displayBackButton && (
+              <Button onClick={handleGoBack} className="bg-primary text-primary-foreground hover:bg-accent1 px-5 md:px-6 py-3 md:py-4 text-2xl md:text-3xl rounded-full shadow-md flex items-center gap-3">
+                <ArrowLeftIcon className="w-6 h-6" />
+                Volver
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {pathname !== "/" && (
+              <Button onClick={handleGoHome} className="bg-primary text-primary-foreground hover:bg-accent1 px-5 md:px-6 py-3 md:py-4 text-2xl md:text-3xl rounded-full shadow-md flex items-center gap-3">
+                <HomeIcon className="w-6 h-6" />
+                Inicio
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
 
       <main className="flex-1 flex flex-col items-center w-full max-w-6xl mx-auto px-4 md:px-8 lg:px-12 py-8">
         {children}
       </main>
+
+      {/* Botón flotante Volver Arriba (icono) */}
+      {showScrollTop && (
+        <div className="fixed bottom-24 right-6 z-50">
+          <Button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Volver Arriba" className="bg-primary text-primary-foreground hover:bg-accent1 p-3 rounded-full shadow-lg">
+            <ArrowUpIcon className="w-6 h-6" />
+          </Button>
+        </div>
+      )}
 
       <Footer />
     </div>

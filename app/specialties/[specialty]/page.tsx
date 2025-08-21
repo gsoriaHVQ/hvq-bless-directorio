@@ -217,6 +217,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
                       specialtyName={specialtyName}
                       basePath={`/specialties/${resolvedSpecialtyId || specialtyId}`}
                       className=""
+                      variant="compact"
                     />
                   </div>
                 )

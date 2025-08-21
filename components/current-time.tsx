@@ -23,7 +23,9 @@ export function CurrentTime({ variant = 'full' }: CurrentTimeProps) {
       const h24 = d.getHours()
       const mm = d.getMinutes().toString().padStart(2, '0')
       const ss = d.getSeconds().toString().padStart(2, '0')
-      setNowText(`${h24}:${mm}:${ss}`)
+      const h12 = ((h24 + 11) % 12) + 1
+      const ampm = h24 >= 12 ? 'PM' : 'AM'
+      setNowText(`${h12}:${mm}:${ss} ${ampm}`)
       
       // Formato de fecha en español
       const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
@@ -43,8 +45,9 @@ export function CurrentTime({ variant = 'full' }: CurrentTimeProps) {
       const diaSemanaCorto = diasCortos[d.getDay()]
       const mesCorto = mesesCortos[d.getMonth()]
       
-      setCompactTime(`${h24}:${mm}`)
-      setCompactDate(`${diaSemanaCorto} ${dia} ${mesCorto} ${año} ${h24}:${mm}:${ss}`)
+      setCompactTime(`${h12}:${mm} ${ampm}`)
+      // En compacto, sólo la fecha debajo (sin hora)
+      setCompactDate(`${diaSemanaCorto} ${dia} ${mesCorto} ${año}`)
     }
     update()
     const timer = setInterval(update, 1000)
@@ -55,8 +58,8 @@ export function CurrentTime({ variant = 'full' }: CurrentTimeProps) {
     return (
       <div className="flex items-center justify-center gap-2">
         <div className="flex flex-col items-center">
-          <span className="text-2xl font-bold">{mounted ? compactTime : "9:52"}</span>
-          <span className="text-xs">{mounted ? compactDate : "mié 21 may 2025 15:11"}</span>
+          <span className="text-2xl font-bold">{mounted ? compactTime : "9:52 AM"}</span>
+          <span className="text-xs">{mounted ? compactDate : "mié 21 may 2025"}</span>
         </div>
       </div>
     )
@@ -64,7 +67,7 @@ export function CurrentTime({ variant = 'full' }: CurrentTimeProps) {
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <Badge suppressHydrationWarning className="bg-accent1 text-primary-foreground text-4xl md:text-5xl px-6 md:px-8 py-4 md:py-6 rounded-full shadow-md font-bold">
+      <Badge suppressHydrationWarning className="bg-accent1 text-primary-foreground text-4xl md:text-5xl px-6 md:px-8 pt-6 md:pt-8 pb-4 md:pb-5 rounded-full shadow-md font-bold">
         {mounted ? nowText : ""}
       </Badge>
       <div className="text-lg md:text-xl font-semibold text-gray-700">

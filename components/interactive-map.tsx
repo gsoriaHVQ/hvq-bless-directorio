@@ -35,22 +35,6 @@ export function InteractiveMap({ consultorio, building, floor }: InteractiveMapP
               allowFullScreen
             />
           </div>
-
-          {/* Marcador "Usted se encuentra aquí" (fijo para simulación)
-          <div className="absolute top-[80%] left-[15%] bg-blue-500/80 rounded-full w-10 h-10 flex items-center justify-center animate-pulse z-10">
-            <LocateFixedIcon className="w-6 h-6 text-white" />
-            <span className="absolute -bottom-6 text-sm text-blue-700 font-semibold whitespace-nowrap">Usted aquí</span>
-          </div> */}
-
-          {/* Marcador de la ubicación del doctor (dinámico) */}
-          {/* {doctorLocation && (
-            <div
-              className="absolute bg-accent1/80 rounded-full w-12 h-12 flex items-center justify-center animate-bounce z-10"
-              style={{ top: doctorLocation.top, left: doctorLocation.left, transform: 'translate(-50%, -50%)' }}
-            >
-              <MapPinIcon className="w-7 h-7 text-primary-foreground" />
-              <span className="absolute -top-6 text-sm text-accent2 font-semibold whitespace-nowrap">{building}</span>
-            </div> */}
         </div>
         {/*
         <p className="text-2xl mt-6 text-center">

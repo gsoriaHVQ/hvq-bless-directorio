@@ -26,26 +26,30 @@ export const DoctorCard = memo(function DoctorCard({ doctor, specialtyName, base
   const isLongName = doctor.name.length > 28
   const isLongSpecialty = specialtyName.length > 28
   
-  // Calcular tamaños de texto con reducción del 20% para nombres largos
-  const nameSize = isLongName 
-    ? `${isCompact ? 'text-base' : 'text-xl'}`
-    : `${isCompact ? 'text-lg' : 'text-2xl'}`
-  
-  const specialtySize = isLongSpecialty
-    ? `${isCompact ? 'text-xs' : 'text-sm'}`
-    : `${isCompact ? 'text-sm' : 'text-lg'}`
+  // Tamaños base
+  const baseNameClass = isCompact ? 'text-lg' : 'text-2xl'
+  const baseSpecClass = isCompact ? 'text-sm' : 'text-lg'
+
+  // Reducir tipografía cuando también se muestra la especialidad (variant default)
+  const nameSize = !isCompact
+    ? (isLongName ? 'text-lg' : 'text-xl')
+    : (isLongName ? 'text-base' : 'text-lg')
+
+  const specialtySize = !isCompact
+    ? (isLongSpecialty ? 'text-xs' : 'text-sm')
+    : (isLongSpecialty ? 'text-xs' : 'text-sm')
 
   return (
     <Link key={doctor.id} href={`${basePath}/${doctor.id}`} passHref>
-      <Card className={`bg-secondary text-accent2 hover:bg-primary hover:text-primary-foreground transition-colors duration-200 cursor-pointer rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 flex flex-col items-center justify-center p-4 h-[16.8rem] w-[326.4px] group ${className || ''}`}>
-        <CardContent className="flex flex-col items-center justify-center p-4 w-full">
+      <Card className={`bg-secondary text-accent2 hover:bg-primary hover:text-primary-foreground transition-colors duration-200 cursor-pointer rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 flex flex-col items-center justify-center p-4 h-[20rem] w-[360px] group ${className || ''}`}>
+        <CardContent className="flex flex-col items-center justify-center px-3 py-4 w-full">{/* reducido ~10% el padding lateral */}
           {showIcon ? (
-            <UserRoundMedical className="w-16 h-16 mb-3 text-primary group-hover:text-primary-foreground" aria-hidden="true" />
+            <UserRoundMedical className="w-24 h-24 mb-4 text-primary group-hover:text-primary-foreground" aria-hidden="true" />
           ) : (
-            <div className="relative mb-3" style={{ width: 80, height: 80 }}>
+            <div className="relative mb-4" style={{ width: 140, height: 140 }}>
               {isImageLoading && (
                 <>
-                  <Skeleton className="w-[80px] h-[80px] rounded-full" />
+                  <Skeleton className="w-[140px] h-[140px] rounded-full" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Loader2Icon className="w-4 h-4 text-primary animate-spin" aria-label="Cargando" />
                   </div>
@@ -55,8 +59,8 @@ export const DoctorCard = memo(function DoctorCard({ doctor, specialtyName, base
               <img
                 src={doctor.photo as string}
                 alt={`Foto de ${doctor.name}`}
-                width={80}
-                height={80}
+                width={140}
+                height={140}
                 loading="lazy"
                 decoding="async"
                 draggable={false}
@@ -73,9 +77,11 @@ export const DoctorCard = memo(function DoctorCard({ doctor, specialtyName, base
             <CardTitle className={`${nameSize} font-bold text-center leading-tight mb-2 line-clamp-2`}>
               {doctor.name}
             </CardTitle>
-            <p className={`${specialtySize} text-accent2 text-center leading-tight line-clamp-2`}>
-              {specialtyName}
-            </p>
+            {!isCompact && (
+              <p className={`${specialtySize} text-accent2 text-center leading-tight line-clamp-2`}>
+                {specialtyName}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

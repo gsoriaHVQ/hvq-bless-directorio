@@ -89,7 +89,23 @@ export default function SpecialtiesPage() {
       }
     })
 
-    return { column1, column2, column3, total: filtered.length }
+    const total = filtered.length
+
+    // Si hay un sobrante de 1 (total % 3 === 1), centrar la última tarjeta en la columna del medio
+    if (total % 3 === 1 && column1.length > column2.length) {
+      const last = column1.pop()
+      if (last) column2.push(last)
+    }
+
+    // Si hay exactamente 2 resultados, colocarlos centrados en la columna del medio
+    if (total === 2) {
+      column1.length = 0
+      column3.length = 0
+      column2.length = 0
+      filtered.forEach((item) => column2.push(item))
+    }
+
+    return { column1, column2, column3, total }
   }, [searchTerm, specialties])
 
   const handleEnter = () => {
@@ -129,8 +145,8 @@ export default function SpecialtiesPage() {
         <div className="sticky top-24 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
           <div className="w-full px-0">
             <h1 className="specialties-title">Especialidades Médicas</h1>
-            <div className="doctor-search-input-container">
-              <div className="doctor-search-input-wrapper">
+            <div className="doctor-search-input-container" style={{ maxWidth: '100%' }}>
+              <div className="doctor-search-input-wrapper" style={{ width: '100%' }}>
                 <Input
                   type="text"
                   placeholder="Buscar especialidad..."
