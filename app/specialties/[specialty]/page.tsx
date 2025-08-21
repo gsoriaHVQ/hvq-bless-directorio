@@ -4,7 +4,7 @@ import { DirectorioLayout } from "@/components/directorio-layout"
 import { notFound } from "next/navigation"
 import { DoctorCard } from "@/components/doctor-card"
 import { useState, useEffect, useMemo } from "react"
-import { use } from "react" 
+import { use } from "react"
 import axios from "axios"
 import { getAccessToken } from "@/lib/auth"
 import { Spinner } from "@/components/ui/spinner"
@@ -92,15 +92,15 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
         })
 
         // Verificar si la respuesta es un array de IDs o de objetos completos
-        const isArrayOfIds = Array.isArray(allDoctorsResponse.data) && 
+        const isArrayOfIds = Array.isArray(allDoctorsResponse.data) &&
           allDoctorsResponse.data.every((item: any) => typeof item === 'number')
-        
+
         let doctorsData: Medico[] = []
-        
+
         if (isArrayOfIds) {
           // 3a. Si es array de IDs, obtener detalles de cada médico
           const successfulDoctors: Medico[] = []
-          
+
           // Usar Promise.allSettled para manejar errores individuales
           const results = await Promise.allSettled(
             allDoctorsResponse.data.map(async (doctorId: number) => {
@@ -118,7 +118,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
               }
             })
           )
-          
+
           // Filtrar médicos válidos y que pertenecen a la especialidad
           results.forEach(result => {
             if (result.status === 'fulfilled' && result.value) {
@@ -132,7 +132,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
               }
             }
           })
-          
+
           doctorsData = successfulDoctors
         } else {
           // 3b. Si ya son objetos completos, filtrar directamente
@@ -171,7 +171,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
         <div className="error-container">
           <h2>Error</h2>
           <p>{error}</p>
-          <button 
+          <button
             className="retry-button"
             onClick={() => window.location.reload()}
           >
@@ -199,7 +199,11 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
     <DirectorioLayout>
       <div style={{ paddingTop: '200px' }}>
         <h1 className="text-4xl font-bold text-primary mb-10 text-center">Doctores en {specialtyName}</h1>
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1d48d29e42ddf8ce60122e5b36d43da9577254c9
         {/* Mostrar todos los doctores sin filtro */}
         <div className="w-full flex justify-center">
           <div className="w-full max-w-6xl">

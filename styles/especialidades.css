@@ -48,6 +48,13 @@
   justify-content: center;
 }
 
+/* Layout de 3 columnas */
+.three-columns-layout {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+}
+
 .column {
   flex: 1;
   max-width: 350px;
@@ -90,7 +97,12 @@
 }
 
 .specialties-card-title {
+<<<<<<< HEAD
   font-size: 0.875rem; /* Reducido de 1rem a 0.875rem para que se vea más grande la imagen */
+=======
+  font-size: 0.875rem;
+  /* Reducido de 1rem para que se vea más grande la imagen */
+>>>>>>> 1d48d29e42ddf8ce60122e5b36d43da9577254c9
   color: #1e293b;
   word-break: break-word;
 }
@@ -122,8 +134,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-container {
@@ -156,19 +173,24 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+<<<<<<< HEAD
+=======
+
+  .alternating-columns-layout,
+>>>>>>> 1d48d29e42ddf8ce60122e5b36d43da9577254c9
   .three-columns-layout {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .column {
     max-width: 100%;
   }
-  
+
   .specialties-card-content {
     padding: 0.75rem;
   }
-  
+
   .specialties-card-title {
     font-size: 0.8rem;
   }
@@ -208,5 +230,6 @@
 }
 
 .specialties-container.keyboard-open {
-  padding-bottom: 300px; /* Ajusta según la altura de tu teclado virtual */
+  padding-bottom: 300px;
+  /* Ajusta según la altura de tu teclado virtual */
 }

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import "@/styles/pages.css"
-import { DirectorioLayout} from "@/components/directorio-layout"
+import { DirectorioLayout } from "@/components/directorio-layout"
 import { VirtualKeyboard } from "@/components/virtual-keyboard"
 import { SearchIcon } from 'lucide-react'
 import { DoctorCard } from "@/components/doctor-card"
@@ -132,60 +132,62 @@ export default function DoctorSearchPage() {
 
   return (
     <DirectorioLayout>
-      <div className="sticky top-24 z-30 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
-        <div className="w-full px-0">
-          <h1 className="doctor-search-title">Buscar Doctor por Nombre</h1>
-          <div className="doctor-search-input-container">
-            <div className="doctor-search-input-wrapper">
-              <Input
-                type="text"
-                placeholder="Escribe el nombre del doctor..."
-                value={searchTerm}
-                onFocus={() => setIsKeyboardOpen(true)}
-                readOnly
-                className="doctor-search-input"
-              />
-              <SearchIcon className="doctor-search-icon" />
+      <div style={{ paddingTop: '200px' }}>
+        <div className="sticky top-24 z-30 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+          <div className="w-full px-0">
+            <h1 className="doctor-search-title">Buscar Doctor por Nombre</h1>
+            <div className="doctor-search-input-container">
+              <div className="doctor-search-input-wrapper">
+                <Input
+                  type="text"
+                  placeholder="Escribe el nombre del doctor..."
+                  value={searchTerm}
+                  onFocus={() => setIsKeyboardOpen(true)}
+                  readOnly
+                  className="doctor-search-input"
+                />
+                <SearchIcon className="doctor-search-icon" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="w-full flex justify-center">
-        <div className="w-full max-w-6xl">
-          {filteredDoctors.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
-              {filteredDoctors.map((doctor, index) => {
-                const isLastOdd = filteredDoctors.length % 2 === 1 && index === filteredDoctors.length - 1
-                const specSlug = getSpecialtySlug(String((doctor as any).specialtyId || ''))
-                const specLabel = String((doctor as any).specialtyLabel || (doctor as any).specialtyId || '')
-                return (
-                  <div key={doctor.id} className={`flex justify-center ${isLastOdd ? 'md:col-span-2' : ''}`}>
-                    <DoctorCard
-                      doctor={doctor}
-                      specialtyName={specLabel}
-                      basePath={`/specialties/${specSlug}`}
-                    />
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <p className="doctor-search-empty">
-              {searchTerm ? "No se encontraron doctores con ese nombre." : "Empieza a escribir para buscar un doctor o selecciona uno de los doctores."}
-            </p>
-          )}
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-6xl">
+            {filteredDoctors.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
+                {filteredDoctors.map((doctor, index) => {
+                  const isLastOdd = filteredDoctors.length % 2 === 1 && index === filteredDoctors.length - 1
+                  const specSlug = getSpecialtySlug(String((doctor as any).specialtyId || ''))
+                  const specLabel = String((doctor as any).specialtyLabel || (doctor as any).specialtyId || '')
+                  return (
+                    <div key={doctor.id} className={`flex justify-center ${isLastOdd ? 'md:col-span-2' : ''}`}>
+                      <DoctorCard
+                        doctor={doctor}
+                        specialtyName={specLabel}
+                        basePath={`/specialties/${specSlug}`}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="doctor-search-empty">
+                {searchTerm ? "No se encontraron doctores con ese nombre." : "Empieza a escribir para buscar un doctor o selecciona uno de los doctores."}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
 
-      {isKeyboardOpen && (
-        <VirtualKeyboard
-          value={searchTerm}
-          onChange={setSearchTerm}
-          onClose={() => setIsKeyboardOpen(false)}
-          placeholder="Buscar por nombre del doctor"
-          onEnter={handleEnter}
-        />
-      )}
+        {isKeyboardOpen && (
+          <VirtualKeyboard
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onClose={() => setIsKeyboardOpen(false)}
+            placeholder="Buscar por nombre del doctor"
+            onEnter={handleEnter}
+          />
+        )}
+      </div>
     </DirectorioLayout>
   )
 }
