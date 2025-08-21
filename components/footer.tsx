@@ -6,7 +6,7 @@ export function Footer() {
       <div className="text-left">v1.0.0</div>
       <div className="flex items-center gap-1 text-right">
         TICS | HOSPITAL VOZANDES QUITO
-        <Image src="/images/htq-logo.png" alt="Logo HTQ Pequeño" width={20} height={20} className="ml-1" />
+        <Image src="http://horizon-html:35480/public/img_directorio/aplicativo_logo.svg" alt="Logo HTQ Pequeño" width={20} height={20} className="ml-1" />
       </div>
     </footer>
   )

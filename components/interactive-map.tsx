@@ -28,7 +28,7 @@ export function InteractiveMap({ consultorio, building, floor }: InteractiveMapP
           <div className="absolute inset-0 overflow-hidden">
             <iframe
               className="absolute left-1/2 top-1/2 w-[110%] h-[110%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-              src="https://www.youtube.com/embed/NDesYmT5D-M?autoplay=1&mute=1&loop=1&playlist=NDesYmT5D-M&controls=0&modestbranding=1&rel=0&showinfo=0&playsinline=1"
+              src="http://prd-hvq-desarrollos:8001/videos/Expectativa%20Bless%20Health%20Tower%202.mp4"
               title="Mapa en video"
               frameBorder="0"
               allow="autoplay; encrypted-media"

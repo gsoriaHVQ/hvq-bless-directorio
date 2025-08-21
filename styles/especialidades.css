@@ -48,13 +48,6 @@
   justify-content: center;
 }
 
-/* Layout de 3 columnas */
-.three-columns-layout {
-  display: flex;
-  gap: 2rem;
-  justify-content: center;
-}
-
 .column {
   flex: 1;
   max-width: 350px;
@@ -76,13 +69,13 @@
 .specialties-card-content {
   display: flex;
   align-items: center;
-  padding: 1rem;
-  gap: 1rem;
+  padding: 1.5rem;
+  gap: 1.5rem;
 }
 
 .specialties-icon-container {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -97,9 +90,10 @@
 }
 
 .specialties-card-title {
-  font-size: 0.875rem; /* Reducido de 1rem a 0.875rem para que se vea más grande la imagen */
+  font-size: 1.25rem;
   color: #1e293b;
   word-break: break-word;
+  font-weight: 600;
 }
 
 .specialties-empty {
@@ -178,11 +172,16 @@
   }
 
   .specialties-card-content {
-    padding: 0.75rem;
+    padding: 1rem;
   }
 
   .specialties-card-title {
-    font-size: 0.8rem;
+    font-size: 1rem;
+  }
+
+  .specialties-icon-container {
+    width: 80px;
+    height: 80px;
   }
 }
 

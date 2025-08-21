@@ -236,46 +236,61 @@
   margin-top: 1rem;
 }
 /* selección de búsqueda */
+.selection-main-container {
+  background: var(--color-primary, #7F0C43);
+  border-radius: 0 0 2rem 2rem;
+  padding: 2rem 1rem 3rem 1rem;
+  margin: 0 -1rem;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .selection-title {
   font-size: 2.25rem;
   font-weight: bold;
-  color: var(--color-primary);
+  color: white;
   margin-bottom: 2.5rem;
   text-align: center;
 }
 
-.selection-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+.selection-three-columns-layout {
+  display: flex;
   gap: 2rem;
+  justify-content: center;
   width: 100%;
-  max-width: 64rem; /* max-w-4xl */
+  max-width: 96rem;
 }
-@media (min-width: 768px) {
-  .selection-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+
+.selection-column {
+  flex: 1;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .selection-card {
-  background: var(--color-bg-light);
-  color: var(--color-accent1);
+  background: var(--color-primary, #7F0C43);
+  color: white;
+  border: 2px solid white;
   border-radius: 0.75rem;
-  box-shadow: 0 4px 24px 0 rgba(127,12,67,0.10);
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.2);
   transition: box-shadow 0.2s, background 0.2s, color 0.2s, transform 0.2s;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  height: 20rem;
+  padding: 2.5rem;
+  height: 25rem;
   position: relative;
 }
 .selection-card:hover {
-  background: color-mix(in srgb, var(--color-primary) 90%, var(--color-bg-light) 10%);
-  color: var(--color-text-light);
-  box-shadow: 0 8px 32px 0 rgba(127,12,67,0.18);
+  background: white;
+  color: var(--color-primary, #7F0C43);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3);
   transform: scale(1.05);
 }
 
@@ -288,20 +303,63 @@
 }
 
 .selection-card-icon {
-  width: 6rem;
-  height: 6rem;
-  margin-bottom: 1.5rem;
-  color: var(--color-primary);
+  width: 8rem;
+  height: 8rem;
+  margin-bottom: 2rem;
+  color: white;
   transition: color 0.2s;
 }
 .selection-card:hover .selection-card-icon {
-  color: var(--color-text-light);
+  color: var(--color-primary, #7F0C43);
 }
 
 .selection-card-title {
-  font-size: 2.25rem;
+  font-size: 2.5rem;
   font-weight: bold;
   text-align: center;
+}
+
+.selection-footer-banner {
+  margin-top: 2rem;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+/* Responsive para selección */
+@media (max-width: 768px) {
+  .selection-main-container {
+    padding: 1.5rem 0.5rem 2rem 0.5rem;
+    margin: 0 -0.5rem;
+  }
+
+  .selection-three-columns-layout {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .selection-column {
+    max-width: 100%;
+  }
+
+  .selection-card {
+    height: 20rem;
+    padding: 2rem;
+  }
+
+  .selection-card-icon {
+    width: 6rem;
+    height: 6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .selection-card-title {
+    font-size: 2rem;
+  }
+
+  .selection-title {
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+  }
 }
 /* Paleta de colores principal y complementarios */
 :root {
@@ -359,29 +417,41 @@
   color: var(--color-primary, #7F0C43);
 }
 
-.doctor-search-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+.doctor-search-three-columns-layout {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
   width: 100%;
   max-width: 96rem; /* max-w-6xl */
 }
-@media (min-width: 768px) {
-  .doctor-search-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (min-width: 1024px) {
-  .doctor-search-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+
+.doctor-search-column {
+  flex: 1;
+  min-width: 300px;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .doctor-search-empty {
   font-size: 1.5rem; /* text-2xl */
   color: var(--color-accent2, #333333);
-  grid-column: 1 / -1;
   text-align: center;
+  width: 100%;
+}
+
+/* Responsive para búsqueda de médicos */
+@media (max-width: 768px) {
+  .doctor-search-three-columns-layout {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .doctor-search-column {
+    max-width: 100%;
+  }
 }
 
 /* Estilos para las tarjetas de días de consulta y procedimiento */
@@ -472,4 +542,131 @@
 .consultation-day-card.selected:hover .consultation-day-title,
 .procedure-day-card.selected:hover .procedure-day-title {
   color: var(--color-text-light);
+}
+
+/* selección de documentos */
+.document-selection-main-container {
+  background: var(--color-primary, #7F0C43);
+  border-radius: 0 0 2rem 2rem;
+  padding: 2rem 1rem 3rem 1rem;
+  margin: 0 -1rem;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.document-selection-title {
+  font-size: 2.25rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.document-selection-three-columns-layout {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  width: 100%;
+  max-width: 96rem;
+}
+
+.document-selection-column {
+  flex: 1;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.document-selection-card {
+  background: var(--color-primary, #7F0C43);
+  color: white;
+  border: 2px solid white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.2);
+  transition: box-shadow 0.2s, background 0.2s, color 0.2s, transform 0.2s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  height: 25rem;
+  position: relative;
+}
+.document-selection-card:hover {
+  background: white;
+  color: var(--color-primary, #7F0C43);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3);
+  transform: scale(1.05);
+}
+
+.document-selection-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.document-selection-card-icon {
+  width: 8rem;
+  height: 8rem;
+  margin-bottom: 2rem;
+  color: white;
+  transition: color 0.2s;
+}
+.document-selection-card:hover .document-selection-card-icon {
+  color: var(--color-primary, #7F0C43);
+}
+
+.document-selection-card-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.document-selection-footer-banner {
+  margin-top: 2rem;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+/* Responsive para selección de documentos */
+@media (max-width: 768px) {
+  .document-selection-main-container {
+    padding: 1.5rem 0.5rem 2rem 0.5rem;
+    margin: 0 -0.5rem;
+  }
+
+  .document-selection-three-columns-layout {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .document-selection-column {
+    max-width: 100%;
+  }
+
+  .document-selection-card {
+    height: 20rem;
+    padding: 2rem;
+  }
+
+  .document-selection-card-icon {
+    width: 6rem;
+    height: 6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .document-selection-card-title {
+    font-size: 2rem;
+  }
+
+  .document-selection-title {
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+  }
 }

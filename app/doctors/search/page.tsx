@@ -154,13 +154,12 @@ export default function DoctorSearchPage() {
         <div className="w-full flex justify-center">
           <div className="w-full max-w-6xl">
             {filteredDoctors.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
+              <div className="doctor-search-three-columns-layout">
                 {filteredDoctors.map((doctor, index) => {
-                  const isLastOdd = filteredDoctors.length % 2 === 1 && index === filteredDoctors.length - 1
                   const specSlug = getSpecialtySlug(String((doctor as any).specialtyId || ''))
                   const specLabel = String((doctor as any).specialtyLabel || (doctor as any).specialtyId || '')
                   return (
-                    <div key={doctor.id} className={`flex justify-center ${isLastOdd ? 'md:col-span-2' : ''}`}>
+                    <div key={doctor.id} className="doctor-search-column">
                       <DoctorCard
                         doctor={doctor}
                         specialtyName={specLabel}
