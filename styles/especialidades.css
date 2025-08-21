@@ -41,8 +41,8 @@
   color: #64748b;
 }
 
-/* Layout de columnas alternadas */
-.alternating-columns-layout {
+/* Layout de 3 columnas */
+.three-columns-layout {
   display: flex;
   gap: 2rem;
   justify-content: center;
@@ -50,7 +50,7 @@
 
 .column {
   flex: 1;
-  max-width: 500px;
+  max-width: 350px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -90,7 +90,7 @@
 }
 
 .specialties-card-title {
-  font-size: 1rem;
+  font-size: 0.875rem; /* Reducido de 1rem a 0.875rem para que se vea más grande la imagen */
   color: #1e293b;
   word-break: break-word;
 }
@@ -156,7 +156,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .alternating-columns-layout {
+  .three-columns-layout {
     flex-direction: column;
     gap: 1rem;
   }
@@ -170,7 +170,7 @@
   }
   
   .specialties-card-title {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
 }
 

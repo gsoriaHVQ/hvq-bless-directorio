@@ -220,6 +220,27 @@ export default function SchedulePage() {
     }
   }, [selectedDay, doctorSchedules])
 
+  // Función para determinar si un día debe estar seleccionado visualmente
+  const isDaySelected = (day: string, kind: 'consulta' | 'procedimiento') => {
+    if (selectedDay !== day) return false
+    if (!selectedKind) return false
+    return selectedKind === kind
+  }
+
+  // Función para validar y mostrar el nombre del edificio según el código
+  const getBuildingDisplayName = (buildingCode: string | number | undefined): string => {
+    if (!buildingCode) return 'No especificado'
+    
+    const code = String(buildingCode).trim()
+    
+    // Validación específica para códigos 1 y 2
+    if (code === '1') return 'Edificio Principal'
+    if (code === '2') return 'Edificio Bless'
+    
+    // Para otros códigos, mantener la lógica actual
+    return code
+  }
+
   if (loading) {
     return (
       <DirectorioLayout>
@@ -346,11 +367,7 @@ export default function SchedulePage() {
             </div>
           )}
 
-                    <div className={`w-full max-w-6xl mx-auto grid gap-8 ${
-            consultaDays.length > 0 && procedimientoDays.length > 0 
-              ? 'grid-cols-1 lg:grid-cols-2' 
-              : 'grid-cols-1 max-w-2xl'
-          }`}>
+          <div className="w-full max-w-2xl mx-auto space-y-8">
             {/* Días de Consulta */}
             {consultaDays.length > 0 && (
               <Card className="consultation-days-card bg-white border border-[#E5E5E5] shadow-sm">
@@ -365,7 +382,7 @@ export default function SchedulePage() {
                 <CardContent className="consultation-days-content">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {consultaDays.map((day) => {
-                      const isSelected = selectedDay === day
+                      const isSelected = isDaySelected(day, 'consulta')
                       return (
                         <Card
                           key={day}
@@ -401,7 +418,7 @@ export default function SchedulePage() {
                 <CardContent className="procedure-days-content">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {procedimientoDays.map((day) => {
-                      const isSelected = selectedDay === day
+                      const isSelected = isDaySelected(day, 'procedimiento')
                       return (
                         <Card
                           key={day}
@@ -429,64 +446,74 @@ export default function SchedulePage() {
         <div ref={detailsRef} />
         {selectedDay && doctorSchedules?.[selectedDay] && (
           <div className="w-full flex flex-col items-center">
-            <Card className="doctor-schedule-details-card w-full max-w-3xl mx-auto">
-              <CardHeader className="doctor-schedule-details-header">
-                <CardTitle className="doctor-schedule-details-title">
-                    Detalles para {dayNames[selectedDay]}
-                  </CardTitle>
-                </CardHeader>
-              <CardContent className="doctor-schedule-details-content">
-                {(doctorSchedules[selectedDay] || [])
+            <h2 className="text-2xl font-bold text-[#7F0C43] mb-6 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+              Detalles para {dayNames[selectedDay]}
+            </h2>
+            
+            <div className="w-full max-w-4xl mx-auto space-y-6">
+              {(doctorSchedules[selectedDay] || [])
+                .filter(sched => {
+                  if (!selectedKind) return true
+                  return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                })
+                .map((sched, idx) => (
+                  <Card key={idx} className="doctor-schedule-details-card w-full mx-auto bg-white border border-[#E5E5E5] shadow-sm">
+                    <CardHeader className="doctor-schedule-details-header">
+                      <CardTitle className="doctor-schedule-details-title text-xl font-bold text-[#7F0C43] text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                        {sched.tipo || 'Horario'}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="doctor-schedule-details-content">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <CalendarCheckIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                          <span className="doctor-schedule-details-label font-medium">Horario:</span>
+                          <span className="text-lg">{sched.time}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <DoorOpenIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                          <span className="doctor-schedule-details-label font-medium">Consultorio:</span>
+                          <span className="text-lg">{sched.room}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <BuildingIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                          <span className="doctor-schedule-details-label font-medium">Edificio:</span>
+                          <span className="text-lg">{getBuildingDisplayName(sched.building)}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <MapPinIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
+                          <span className="doctor-schedule-details-label font-medium">Piso:</span>
+                          <span className="text-lg">{sched.floor || 'No especificado'}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+
+            {/* Mapa interactivo - usar la primera consulta/procedimiento para el mapa */}
+            <div className="w-full max-w-3xl mx-auto mt-8">
+              <InteractiveMap
+                consultorio={((doctorSchedules[selectedDay] || [])
                   .filter(sched => {
                     if (!selectedKind) return true
                     return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
-                  })
-                  .map((sched, idx) => (
-                  <div key={idx} className="mb-4 last:mb-0">
-                    <p className="doctor-schedule-details-row">
-                      <CalendarCheckIcon className="doctor-schedule-details-icon" />
-                      <span className="doctor-schedule-details-label">Horario:</span>{' '}
-                      {sched.time} {sched.tipo ? `(${sched.tipo})` : ''}
-                    </p>
-                    <p className="doctor-schedule-details-row flex items-center gap-2 mb-2">
-                      <DoorOpenIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                      <span className="doctor-schedule-details-label font-medium">Consultorio:</span>
-                      <span>{sched.room}</span>
-                    </p>
-                    <p className="doctor-schedule-details-row flex items-center gap-2 mb-2">
-                      <BuildingIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                      <span className="doctor-schedule-details-label font-medium">Edificio:</span>
-                      <span>{sched.building}</span>
-                    </p>
-                    <p className="doctor-schedule-details-row flex items-center gap-2">
-                      <MapPinIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                      <span className="doctor-schedule-details-label font-medium">Piso:</span>
-                      <span>{sched.floor || 'No especificado'}</span>
-                    </p>
-                  </div>
-                ))}
-                </CardContent>
-              </Card>
-
-              <div className="w-full max-w-3xl mx-auto">
-                <InteractiveMap
-                  consultorio={((doctorSchedules[selectedDay] || [])
-                    .filter(sched => {
-                      if (!selectedKind) return true
-                      return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
-                    })[0])?.room}
-                  building={((doctorSchedules[selectedDay] || [])
-                    .filter(sched => {
-                      if (!selectedKind) return true
-                      return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
-                    })[0])?.building}
-                  floor={((doctorSchedules[selectedDay] || [])
-                    .filter(sched => {
-                      if (!selectedKind) return true
-                      return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
-                    })[0])?.floor}
-                />
-              </div>
+                  })[0])?.room}
+                building={getBuildingDisplayName(((doctorSchedules[selectedDay] || [])
+                  .filter(sched => {
+                    if (!selectedKind) return true
+                    return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                  })[0])?.building)}
+                floor={((doctorSchedules[selectedDay] || [])
+                  .filter(sched => {
+                    if (!selectedKind) return true
+                    return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
+                  })[0])?.floor}
+              />
+            </div>
           </div>
         )}
 
