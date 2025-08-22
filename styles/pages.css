@@ -93,7 +93,7 @@
   color: var(--color-text-light);
 }
 .specialties-card-title {
-  font-size: 1.875rem;
+  font-size: 1.2rem;
   font-weight: bold;
   text-align: center;
 }
@@ -238,13 +238,14 @@
 /* selección de búsqueda */
 .selection-main-container {
   background: var(--color-primary, #7F0C43);
-  border-radius: 2rem 2rem 2rem 2rem;
-  padding: 2rem 2.5rem 3rem 2.5rem;
-  margin: 0 -1rem;
+  border-radius: 2rem;
+  padding: 30px 50px 30px 50px;
+  margin: 0 1rem;
   min-height: 60vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: calc(100% - 2rem);
 }
 
 .selection-title {
@@ -425,11 +426,14 @@
 
 .doctor-search-three-columns-layout {
   display: flex;
-  gap: 2rem;
+  gap: 0.5rem;
   justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
   width: 100%;
   max-width: 96rem; /* max-w-6xl */
+  margin: 0 auto;
+  margin-left: 15px;
 }
 
 .doctor-search-column {

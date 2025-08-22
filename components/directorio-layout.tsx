@@ -86,7 +86,7 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
           <header className="sticky top-0 z-40 w-full bg-[#7F0C43] text-white rounded-b-2xl shadow-lg">
             <div className="mx-auto w-full max-w-6xl px-4 md:px-8 lg:px-12 h-24 flex items-center justify-between gap-3">
               {/* Logo y nombre del hospital */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 cursor-pointer" onClick={handleGoHome}>
                 <Image
                   src="/images/hvq_2025_1.png"
                   alt="Hospital Vozandes Quito"
@@ -138,14 +138,18 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
         {children}
       </main>
 
-      {/* Botón flotante Volver Arriba (icono) */}
-      {showScrollTop && (
-        <div className="fixed bottom-24 right-6 z-50">
-          <Button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Volver Arriba" className="bg-primary text-primary-foreground hover:bg-accent1 p-3 rounded-full shadow-lg">
-            <ArrowUpIcon className="w-6 h-6" />
-          </Button>
-        </div>
-      )}
+             {/* Botón flotante Volver Arriba (centrado abajo sobre el footer) */}
+ {showScrollTop && (
+   <div className="fixed bottom-9 inset-x-0 flex justify-center z-50">
+     <Button
+       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+       aria-label="Volver Arriba"
+       className="bg-primary text-primary-foreground hover:bg-accent1 p-10 rounded-full shadow-2xl"
+     >
+       <ArrowUpIcon className="w-20 h-20" />
+     </Button>
+   </div>
+ )}
 
       <Footer />
     </div>

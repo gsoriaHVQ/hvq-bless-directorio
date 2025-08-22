@@ -185,7 +185,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
   if (!allDoctors.length || !specialtyName) {
     return (
       <DirectorioLayout>
-        <div style={{ paddingTop: '200px' }}>
+        <div style={{ paddingTop: '50px' }}>
           <h1 className="text-4xl font-bold text-primary mb-10 text-center">Doctores en {specialtyName || 'esta especialidad'}</h1>
           <p className="text-2xl text-accent2 col-span-full text-center">
             No se encontraron doctores para esta especialidad.

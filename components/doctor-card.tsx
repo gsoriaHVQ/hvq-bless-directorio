@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "next/link" 
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { UserRoundIcon as UserRoundMedical, Loader2 as Loader2Icon } from 'lucide-react'
 import { memo, useState } from "react"
@@ -41,15 +41,23 @@ export const DoctorCard = memo(function DoctorCard({ doctor, specialtyName, base
 
   return (
     <Link key={doctor.id} href={`${basePath}/${doctor.id}`} passHref>
-      <Card className={`bg-secondary text-accent2 hover:bg-primary hover:text-primary-foreground transition-colors duration-200 cursor-pointer rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 flex flex-col items-center justify-center p-4 h-[20rem] w-[360px] group ${className || ''}`}>
-        <CardContent className="flex flex-col items-center justify-center px-3 py-4 w-full">{/* reducido ~10% el padding lateral */}
+      <Card 
+        className={`bg-secondary text-accent2 hover:bg-primary hover:text-primary-foreground 
+                    transition-colors duration-200 cursor-pointer rounded-2xl shadow-lg 
+                    hover:shadow-xl transform hover:scale-105 flex flex-col items-center 
+                    justify-center py-4 h-[18rem] w-[300px] group ${className || ''}`}
+      >
+        <CardContent className="flex flex-col items-center justify-center py-4 w-full">
           {showIcon ? (
-            <UserRoundMedical className="w-24 h-24 mb-4 text-primary group-hover:text-primary-foreground" aria-hidden="true" />
+            <UserRoundMedical 
+              className="w-20 h-20 mb-4 text-primary group-hover:text-primary-foreground" 
+              aria-hidden="true" 
+            />
           ) : (
-            <div className="relative mb-4" style={{ width: 140, height: 140 }}>
+            <div className="relative mb-4" style={{ width: 120, height: 120 }}>
               {isImageLoading && (
                 <>
-                  <Skeleton className="w-[140px] h-[140px] rounded-full" />
+                  <Skeleton className="w-[120px] h-[120px] rounded-full" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Loader2Icon className="w-4 h-4 text-primary animate-spin" aria-label="Cargando" />
                   </div>
@@ -59,8 +67,8 @@ export const DoctorCard = memo(function DoctorCard({ doctor, specialtyName, base
               <img
                 src={doctor.photo as string}
                 alt={`Foto de ${doctor.name}`}
-                width={140}
-                height={140}
+                width={120}
+                height={120}
                 loading="lazy"
                 decoding="async"
                 draggable={false}
@@ -73,7 +81,7 @@ export const DoctorCard = memo(function DoctorCard({ doctor, specialtyName, base
               />
             </div>
           )}
-          <div className="w-full px-2">
+          <div className="w-full">
             <CardTitle className={`${nameSize} font-bold text-center leading-tight mb-2 line-clamp-2`}>
               {doctor.name}
             </CardTitle>

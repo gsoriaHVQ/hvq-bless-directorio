@@ -68,44 +68,12 @@ export default function SpecialtiesPage() {
     fetchSpecialties()
   }, [])
 
-  // Dividir especialidades en 3 columnas
-  const columns = useMemo(() => {
-    const filtered = searchTerm
+  // Filtrar especialidades según el término de búsqueda
+  const filteredSpecialties = useMemo(() => {
+    return searchTerm
       ? specialties.filter(s =>
         s.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()))
       : specialties
-
-    const column1: Especialidad[] = []
-    const column2: Especialidad[] = []
-    const column3: Especialidad[] = []
-
-    filtered.forEach((specialty, index) => {
-      if (index % 3 === 0) {
-        column1.push(specialty)
-      } else if (index % 3 === 1) {
-        column2.push(specialty)
-      } else {
-        column3.push(specialty)
-      }
-    })
-
-    const total = filtered.length
-
-    // Si hay un sobrante de 1 (total % 3 === 1), centrar la última tarjeta en la columna del medio
-    if (total % 3 === 1 && column1.length > column2.length) {
-      const last = column1.pop()
-      if (last) column2.push(last)
-    }
-
-    // Si hay exactamente 2 resultados, colocarlos centrados en la columna del medio
-    if (total === 2) {
-      column1.length = 0
-      column3.length = 0
-      column2.length = 0
-      filtered.forEach((item) => column2.push(item))
-    }
-
-    return { column1, column2, column3, total }
   }, [searchTerm, specialties])
 
   const handleEnter = () => {
@@ -141,9 +109,9 @@ export default function SpecialtiesPage() {
 
   return (
     <DirectorioLayout>
-      <div className="specialties-container" style={{ paddingTop: '200px' }}>
-        <div className="sticky top-24 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
-          <div className="w-full px-0">
+      <div className="specialties-container" style={{ paddingTop: '10px' }}>
+        <div className="sticky top-24 z-30 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+          <div className="w-full px-4">
             <h1 className="specialties-title">Especialidades Médicas</h1>
             <div className="doctor-search-input-container" style={{ maxWidth: '100%' }}>
               <div className="doctor-search-input-wrapper" style={{ width: '100%' }}>
@@ -161,156 +129,50 @@ export default function SpecialtiesPage() {
           </div>
         </div>
 
-        {columns.total === 1 ? (
-          <div className="w-full flex justify-center" style={{ marginTop: '2rem' }}>
-            {(() => {
-              const specialty = columns.column1[0] || columns.column2[0] || columns.column3[0]
-              if (!specialty) return null
-              return (
-                <Link
-                  key={specialty.especialidadId}
-                  href={`/specialties/${specialty.especialidadId}`}
-                  passHref
-                >
-                  <Card className="specialties-card group">
-                    <CardContent className="specialties-card-content">
-                      {specialty.icono ? (
-                        <div className="specialties-icon-container">
-                          <img
-                            src={specialty.icono}
-                            alt={`Icono de ${specialty.descripcion}`}
-                            className="specialties-card-icon"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none'
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div className="specialties-default-icon">
-                    
-                        </div>
-                      )}
-                      <CardTitle className="specialties-card-title">
-                        {specialty.descripcion || 'Especialidad sin nombre'}
-                      </CardTitle>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })()}
+        <div className="w-full">
+          <div className="w-full">
+            {filteredSpecialties.length > 0 ? (
+              <div className="doctor-search-three-columns-layout" style={{ marginTop: '2rem' }}>
+                {filteredSpecialties.map((specialty) => (
+                  <div key={specialty.especialidadId} className="doctor-search-column">
+                    <Link
+                      href={`/specialties/${specialty.especialidadId}`}
+                      passHref
+                    >
+                      <Card className="specialties-card group">
+                        <CardContent className="specialties-card-content">
+                          {specialty.icono ? (
+                            <div className="specialties-icon-container">
+                              <img
+                                src={specialty.icono}
+                                alt={`Icono de ${specialty.descripcion}`}
+                                className="specialties-card-icon"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none'
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <div className="specialties-default-icon">
+                              <span className="text-2xl">🏥</span>
+                            </div>
+                          )}
+                          <CardTitle className="specialties-card-title">
+                            {specialty.descripcion || 'Especialidad sin nombre'}
+                          </CardTitle>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="specialties-empty">
+                {searchTerm ? "No se encontraron especialidades." : "Empieza a escribir para buscar una especialidad."}
+              </p>
+            )}
           </div>
-        ) : (
-          <div className="three-columns-layout" style={{ marginTop: '2rem' }}>
-            {/* Columna 1 */}
-            <div className="column">
-              {columns.column1.map((specialty) => (
-                <Link
-                  key={specialty.especialidadId}
-                  href={`/specialties/${specialty.especialidadId}`}
-                  passHref
-                >
-                  <Card className="specialties-card group">
-                    <CardContent className="specialties-card-content">
-                      {specialty.icono ? (
-                        <div className="specialties-icon-container">
-                          <img
-                            src={specialty.icono}
-                            alt={`Icono de ${specialty.descripcion}`}
-                            className="specialties-card-icon"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none'
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div className="specialties-default-icon">
-                          <span className="text-2xl">🏥</span>
-                        </div>
-                      )}
-                      <CardTitle className="specialties-card-title">
-                        {specialty.descripcion || 'Especialidad sin nombre'}
-                      </CardTitle>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-
-            {/* Columna 2 */}
-            <div className="column">
-              {columns.column2.map((specialty) => (
-                <Link
-                  key={specialty.especialidadId}
-                  href={`/specialties/${specialty.especialidadId}`}
-                  passHref
-                >
-                  <Card className="specialties-card group">
-                    <CardContent className="specialties-card-content">
-                      {specialty.icono ? (
-                        <div className="specialties-icon-container">
-                          <img
-                            src={specialty.icono}
-                            alt={`Icono de ${specialty.descripcion}`}
-                            className="specialties-card-icon"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none'
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div className="specialties-default-icon">
-                          <span className="text-2xl">🏥</span>
-                        </div>
-                      )}
-                      <CardTitle className="specialties-card-title">
-                        {specialty.descripcion || 'Especialidad sin nombre'}
-                      </CardTitle>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-
-            {/* Columna 3 */}
-            <div className="column">
-              {columns.column3.map((specialty) => (
-                <Link
-                  key={specialty.especialidadId}
-                  href={`/specialties/${specialty.especialidadId}`}
-                  passHref
-                >
-                  <Card className="specialties-card group">
-                    <CardContent className="specialties-card-content">
-                      {specialty.icono ? (
-                        <div className="specialties-icon-container">
-                          <img
-                            src={specialty.icono}
-                            alt={`Icono de ${specialty.descripcion}`}
-                            className="specialties-card-icon"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none'
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div className="specialties-default-icon">
-                          <span className="text-2xl">🏥</span>
-                        </div>
-                      )}
-                      <CardTitle className="specialties-card-title">
-                        {specialty.descripcion || 'Especialidad sin nombre'}
-                      </CardTitle>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {columns.column1.length === 0 && columns.column2.length === 0 && columns.column3.length === 0 && (
-          <p className="specialties-empty">No se encontraron especialidades.</p>
-        )}
+        </div>
       </div>
 
       {isKeyboardOpen && (

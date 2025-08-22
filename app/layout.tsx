@@ -30,7 +30,7 @@ html {
       </head>
       <body>
         <DisableZoomAndContext />
-        <IdleRedirect timeoutMs={90000} homePath="/">
+        <IdleRedirect timeoutMs={30000} homePath="/">
           {children}
         </IdleRedirect>
       </body>

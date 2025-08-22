@@ -8,11 +8,11 @@ import { StethoscopeIcon, UserSearchIcon, FileTextIcon } from 'lucide-react'
 export default function SelectionPage() {
   return (
     <DirectorioLayout>
-      <div style={{ paddingTop: '160px' }}>
+      <div style={{ paddingTop: '20px' }}>
         {/* Contenedor principal con fondo marrón oscuro */}
         <div className="selection-main-container" style={{ borderTopLeftRadius: '2rem', borderTopRightRadius: '2rem' }}>
           <h1 className="selection-title">¿Cómo deseas buscar?</h1>
-          <div className="selection-three-columns-layout" style={{ alignItems: 'stretch' }}>
+          <div className="selection-three-columns-layout" style={{ alignItems: 'stretch', paddingBottom: '25px' }}>
             <div className="selection-column" style={{ order: 1 }}>
               <Link href="/specialties" passHref>
                 <Card className="selection-card" style={{ height: '28rem' }}>

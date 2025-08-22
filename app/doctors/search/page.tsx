@@ -132,9 +132,9 @@ export default function DoctorSearchPage() {
 
   return (
     <DirectorioLayout>
-      <div style={{ paddingTop: '200px' }}>
+      <div style={{ paddingTop: '50px' }}>
         <div className="sticky top-24 z-30 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
-          <div className="w-full px-0">
+          <div className="w-full px-4">
             <h1 className="doctor-search-title">Buscar Doctor por Nombre</h1>
             <div className="doctor-search-input-container" style={{ maxWidth: '100%' }}>
               <div className="doctor-search-input-wrapper" style={{ width: '100%' }}>
@@ -151,8 +151,8 @@ export default function DoctorSearchPage() {
             </div>
           </div>
         </div>
-        <div className="w-full flex justify-center">
-          <div className="w-full max-w-6xl">
+        <div className="w-full">
+          <div className="w-full">
             {filteredDoctors.length > 0 ? (
               <div className="doctor-search-three-columns-layout">
                 {filteredDoctors.map((doctor, index) => {

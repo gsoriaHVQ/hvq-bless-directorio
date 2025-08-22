@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { XIcon, MoveIcon, ChevronsDownIcon, EraserIcon } from 'lucide-react'
+import { XIcon, MoveIcon, ChevronsDownIcon, EraserIcon, LockIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import Keyboard from "react-simple-keyboard"
 import type { KeyboardLayoutObject } from "react-simple-keyboard"
@@ -116,25 +116,23 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
   // Layout del teclado y etiquetas de teclas
   const layout: KeyboardLayoutObject = {
     default: [
-      "1 2 3 4 5 6 7 8 9 0",
       "q w e r t y u i o p",
       "a s d f g h j k l ñ",
       "{shift} z x c v b n m {bksp}",
-      "{space} - . @ {enter}"
+      "{space}"
     ],
     shift: [
-      "! \" # $ % & / ( ) =",
       "Q W E R T Y U I O P",
       "A S D F G H J K L Ñ",
       "{shift} Z X C V B N M {bksp}",
-      "{space} _ , @ {enter}"
+      "{space}"
     ]
   }
 
   const display = {
-    "{bksp}": "Borrar",
+    "{bksp}": "⌫",
     "{enter}": "Enter",
-    "{shift}": "Shift",
+    "{shift}": "⇧",
     "{space}": "Espacio"
   }
 
@@ -158,21 +156,7 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
         onClick={(e) => e.stopPropagation()}
         style={position ? { top: position.top, left: position.left } : undefined}
       >
-        <div className="virtual-keyboard-header" onMouseDown={startDragMouse} onTouchStart={startDragTouch}>
-          <Button variant="ghost" size="icon" className="virtual-keyboard-drag-btn" onMouseDown={startDragMouse} onTouchStart={startDragTouch} aria-label="Mover teclado">
-            <MoveIcon className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="virtual-keyboard-nudge-btn" onClick={() => setPosition((pos) => pos ? { ...pos, top: Math.min(pos.top + 60, window.innerHeight - (keyboardRef.current?.getBoundingClientRect().height || 0) - 20) } : pos)} aria-label="Bajar teclado">
-            <ChevronsDownIcon className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="virtual-keyboard-clear-btn" onClick={() => onChange("")} aria-label="Limpiar texto">
-            <EraserIcon className="w-5 h-5" />
-          </Button>
-          <Button onClick={handleClose} variant="ghost" size="icon" className="virtual-keyboard-close-btn">
-            <XIcon className="w-6 h-6" />
-            <span className="sr-only">Cerrar teclado</span>
-          </Button>
-        </div>
+
 
         <Keyboard
           keyboardRef={(r) => (keyboardInstanceRef.current = r)}
@@ -182,6 +166,51 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
           onChange={(input: string) => onChange(input)}
           onKeyPress={handleKeyPress}
         />
+
+        {/* Controles en la parte inferior centrados */}
+        <div className="virtual-keyboard-bottom-controls">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="virtual-keyboard-nudge-btn" 
+            onClick={() => setPosition((pos) => pos ? { ...pos, top: Math.min(pos.top + 60, window.innerHeight - (keyboardRef.current?.getBoundingClientRect().height || 0) - 20) } : pos)} 
+            aria-label="Bajar teclado"
+            style={{ backgroundColor: '#8C3048', color: 'white' }}
+          >
+            <ChevronsDownIcon className="w-5 h-5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="virtual-keyboard-drag-btn" 
+            onMouseDown={startDragMouse} 
+            onTouchStart={startDragTouch} 
+            aria-label="Mover teclado"
+            style={{ backgroundColor: '#8C3048', color: 'white' }}
+          >
+            <MoveIcon className="w-5 h-5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="virtual-keyboard-clear-btn" 
+            onClick={() => onChange("")} 
+            aria-label="Limpiar texto"
+            style={{ backgroundColor: '#8C3048', color: 'white' }}
+          >
+            <Trash2Icon className="w-5 h-5" />
+          </Button>
+          <Button 
+            onClick={handleClose} 
+            variant="ghost" 
+            size="icon" 
+            className="virtual-keyboard-close-btn"
+            style={{ backgroundColor: '#8C3048', color: 'white' }}
+          >
+            <XIcon className="w-5 h-5" />
+            <span className="sr-only">Cerrar teclado</span>
+          </Button>
+        </div>
       </div>
 
       <style jsx>{`
@@ -191,7 +220,6 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
           left: 0;
           right: 0;
           bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
           z-index: 50;
           opacity: 0;
           animation: fadeIn 0.3s forwards;
@@ -214,22 +242,39 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
           box-shadow: 0 16px 28px rgba(0,0,0,0.28);
         }
         
-        .virtual-keyboard-header {
+        .virtual-keyboard-close-btn {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          z-index: 10;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
           display: flex;
           align-items: center;
-          gap: 12px;
-          margin-bottom: 16px;
-          cursor: move;
-          user-select: none;
+          justify-content: center;
         }
-        .virtual-keyboard-drag-btn { cursor: move; }
-        .virtual-keyboard-nudge-btn { cursor: pointer; }
-        .virtual-keyboard-clear-btn { cursor: pointer; }
         
-        .virtual-keyboard-title { flex: 1; font-size: 1.1rem; font-weight: 600; text-align: center; }
+        .virtual-keyboard-bottom-controls {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 12px;
+          margin-top: 16px;
+          padding-top: 16px;
+          border-top: 1px solid #e5e5e5;
+        }
         
+        .virtual-keyboard-drag-btn, 
+        .virtual-keyboard-nudge-btn, 
+        .virtual-keyboard-clear-btn,
         .virtual-keyboard-close-btn {
-          flex-shrink: 0;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
         .virtual-keyboard-keys {
@@ -251,13 +296,6 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
           font-weight: 500;
           border-radius: 8px;
           flex: 1;
-        }
-        
-        .virtual-keyboard-actions {
-          display: flex;
-          justify-content: center;
-          gap: 8px;
-          margin-top: 12px;
         }
         
         .virtual-keyboard-action-btn {

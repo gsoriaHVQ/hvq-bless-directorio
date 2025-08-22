@@ -24,15 +24,18 @@ export function InteractiveMap({ consultorio, building, floor }: InteractiveMapP
       </CardHeader>
       <CardContent className="p-0 flex flex-col items-center justify-center">
         <div className="relative w-full h-64 md:h-96 bg-black rounded-lg overflow-hidden flex items-center justify-center border-2 border-primary">
-          {/* Video en bucle, sin sonido, zoom 10%, sin interacción del usuario */}
+          {/* Video en bucle infinito, sin sonido, zoom 10%, sin interacción del usuario */}
           <div className="absolute inset-0 overflow-hidden">
-            <iframe
-              className="absolute left-1/2 top-1/2 w-[110%] h-[110%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            <video
+              className="absolute left-1/2 top-1/2 w-[110%] h-[110%] -translate-x-1/2 -translate-y-1/2 pointer-events-none object-cover"
               src="http://prd-hvq-desarrollos:8001/videos/Expectativa%20Bless%20Health%20Tower%202.mp4"
               title="Mapa en video"
-              frameBorder="0"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
+              autoPlay
+              muted
+              loop
+              playsInline
+              disablePictureInPicture
+              disableRemotePlayback
             />
           </div>
         </div>
