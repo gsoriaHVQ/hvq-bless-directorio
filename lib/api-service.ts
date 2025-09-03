@@ -198,13 +198,11 @@ class ApiService {
   async getAgendasDetalladasPorMedico(codigoPrestador: string | number): Promise<ApiResponse<AgendaDetallada[]>> {
     // Cargar en paralelo
     const inputCodigo = String(codigoPrestador)
-    //const inputCodigoEdificio = String(codigoEdificio)
-    const [agendasRes, medicosRes, consultoriosRes, edificiosRes, pisoRes, diasRes] = await Promise.all([
+    const [agendasRes, medicosRes, consultoriosRes, edificiosRes, diasRes] = await Promise.all([
       this.getAgendasPorMedico(inputCodigo),
       this.getDoctores(),
       this.getConsultorios(),
       this.getEdificios(),
-      this.getPisosEdificio(String(2)),
       this.getDias()
     ])
 
@@ -250,25 +248,18 @@ class ApiService {
       )
       const edificio = String(
         (c as any).codigo_edificio ?? (c as any).edificio ?? (c as any).CD_EDIFICIO ?? (c as any).codigoEdificio ?? (c as any).edificio_id ?? (c as any).edificioId ?? ''
-      
       )
-
-      const piso = String(
-        (c as any).pisoRes ?? (c as any).CD_PISO ?? (c as any).codigoPiso ?? (c as any).piso_id ?? (c as any).pisoId
-      )
-      // const piso = (c as any).piso ?? (c as any).CD_PISO ?? (c as any).codigoPiso ?? (c as any).piso_id ?? (c as any).pisoId
-      const des_piso = (
-        (c as any).pisoRes ?? (c as any).DES_PISO ?? (c as any).descripcion_piso ?? (c as any).DESCRIPCION_PISO ?? (c as any).descripcionPiso ?? (c as any).piso_descripcion
-      )
-      // // Priorizar campo de descripción del consultorio en diferentes variantes
-      const descripcion = (c as any).des_piso
-      //   ?? (c as any).DES_CONSULTORIO
-      //   ?? (c as any).descripcion_consultorio
-      //   ?? (c as any).DESCRIPCION_CONSULTORIO
-      //   ?? (c as any).descripcion
-      //   ?? (c as any).nombre
-      //   ?? (c as any).consultorio
-      //   ?? (c as any).consultorio_nombre
+      const piso = (c as any).piso ?? (c as any).CD_PISO ?? (c as any).codigoPiso ?? (c as any).piso_id ?? (c as any).pisoId
+      const des_piso = (c as any).des_piso ?? (c as any).DES_PISO ?? (c as any).descripcion_piso ?? (c as any).DESCRIPCION_PISO ?? (c as any).descripcionPiso ?? (c as any).piso_descripcion
+      // Priorizar campo de descripción del consultorio en diferentes variantes
+      const descripcion = (c as any).des_consultorio
+        ?? (c as any).DES_CONSULTORIO
+        ?? (c as any).descripcion_consultorio
+        ?? (c as any).DESCRIPCION_CONSULTORIO
+        ?? (c as any).descripcion
+        ?? (c as any).nombre
+        ?? (c as any).consultorio
+        ?? (c as any).consultorio_nombre
       
       const result = {
         codigo_consultorio: codigo,
@@ -299,7 +290,25 @@ class ApiService {
         edificioPorCodigo.set(codigo, e)
       }
     })
+
     
+
+    const pisosPorEdificio = new Map<string, Map<string, string>>()
+ 
+    const edificioCodigo = '1'
+    const pisosRes = await this.getPisosEdificio(edificioCodigo)
+ 
+    console.log('pisosRes para edificio', edificioCodigo, JSON.stringify(pisosRes, null, 2))
+ 
+    if (pisosRes.success && Array.isArray(pisosRes.data)) {
+      const mapPisos = new Map<string, string>()
+      pisosRes.data.forEach((p: any) => {
+        const codigoPiso = String(p.codigo_piso ?? '')
+        const desc = String(p.descripcion_piso ?? '')
+        if (codigoPiso) mapPisos.set(codigoPiso, desc)
+      })
+      pisosPorEdificio.set(edificioCodigo, mapPisos)
+    }
 
 
     const diaNombrePorCodigo = new Map<string, string>()
@@ -429,12 +438,17 @@ class ApiService {
        // 5. Obtener código del piso desde el consultorio
        const pisoCodigo = consultorio?.piso ?? (consultorio?.__raw as any)?.CD_PISO ?? (consultorio?.__raw as any)?.codigo_piso
        
-       // 6. Usar el piso real si existe; de lo contrario, dejar vacío
        let pisoFormateado = ''
-       if (pisoCodigo != null && String(pisoCodigo).trim() !== '') {
-         const pisoNum = Number(pisoCodigo)
-         pisoFormateado = Number.isFinite(pisoNum) ? `Piso ${pisoNum}` : String(pisoCodigo)
-       }
+      if (buildingCode && pisoCodigo != null) {
+        const mapPisos = pisosPorEdificio.get(buildingCode)
+        if (mapPisos) {
+          pisoFormateado = mapPisos.get(String(pisoCodigo)) ?? ''
+        }
+      }
+ 
+      if (!pisoFormateado) {
+        pisoFormateado = consultorio?.des_piso ? String(consultorio.des_piso) : ''
+      }
        
        // 6b. Descripción del piso desde el catálogo de consultorios (si existe)
        const pisoDescripcion = consultorio?.des_piso ? String(consultorio.des_piso) : ''
