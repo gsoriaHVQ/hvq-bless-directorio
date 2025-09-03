@@ -99,12 +99,12 @@ export default function SchedulePage() {
         const isSpecialtyId = /^\d+$/.test(specialtySlug)
         let foundSpecialty: any
         if (isSpecialtyId) {
-          const res = await axios.get(`http://10.129.180.161:36560/api3/v1/especialidades/${specialtySlug}`, {
+          const res = await axios.get(`http://10.129.180.166:36560/api3/v1/especialidades/${specialtySlug}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
           foundSpecialty = res.data
         } else {
-          const res = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
+          const res = await axios.get('http://10.129.180.166:36560/api3/v1/especialidades/agenda', {
             headers: { 'Authorization': `Bearer ${token}` }
           })
           const list = Array.isArray(res.data) ? res.data : []
@@ -118,19 +118,19 @@ export default function SchedulePage() {
         let doctorData: any
         let doctorIdToUse: number
         if (isDoctorId) {
-          const res = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${doctorSlug}`, {
+          const res = await axios.get(`http://10.129.180.166:36560/api3/v1/medico/${doctorSlug}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
           doctorData = res.data
           doctorIdToUse = doctorData.id
         } else {
-          const res = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/especialidad/${foundSpecialty.especialidadId}`, {
+          const res = await axios.get(`http://10.129.180.166:36560/api3/v1/medico/especialidad/${foundSpecialty.especialidadId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
           const list = Array.isArray(res.data) ? res.data : []
           const foundDoctor = list.find((doc: any) => slugify(String(doc.nombres || '')) === slugify(String(doctorSlug)))
           if (!foundDoctor) throw new Error('Médico no encontrado')
-          const detail = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${foundDoctor.id}`, {
+          const detail = await axios.get(`http://10.129.180.166:36560/api3/v1/medico/${foundDoctor.id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
           doctorData = detail.data
@@ -179,7 +179,8 @@ export default function SchedulePage() {
         setDoctorSchedules(formattedSchedules)
         setLoading(false)
       } catch (err) {
-        console.error('Error fetching data:', err)
+        // En producción, no deberíamos loggear errores de usuario
+        // console.error('Error fetching data:', err)
         setError(err instanceof Error ? err.message : 'Error desconocido')
         setLoading(false)
       }
@@ -450,7 +451,7 @@ export default function SchedulePage() {
               Detalles para {dayNames[selectedDay]}
             </h2>
             
-            <div className="w-full max-w-4xl mx-auto space-y-6">
+            <div className="w-full max-w-4xl mx-auto space-y-3">
               {(doctorSchedules[selectedDay] || [])
                 .filter(sched => {
                   if (!selectedKind) return true
@@ -464,7 +465,7 @@ export default function SchedulePage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="doctor-schedule-details-content">
-                      <div className="space-y-4">
+                      <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <CalendarCheckIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
                           <span className="doctor-schedule-details-label font-medium">Horario:</span>

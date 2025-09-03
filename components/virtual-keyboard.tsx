@@ -5,14 +5,7 @@ import { XIcon, MoveIcon, ChevronsDownIcon, EraserIcon, LockIcon, Trash2Icon } f
 import { useEffect, useRef, useState } from "react"
 import Keyboard from "react-simple-keyboard"
 import type { KeyboardLayoutObject } from "react-simple-keyboard"
-
-interface VirtualKeyboardProps {
-  value: string
-  onChange: (value: string) => void
-  onClose: () => void
-  placeholder?: string
-  onEnter?: () => void
-}
+import type { VirtualKeyboardProps } from "@/lib/types"
 
 export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter }: VirtualKeyboardProps) {
   const keyboardRef = useRef<HTMLDivElement>(null)

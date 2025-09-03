@@ -58,7 +58,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
         const isId = /^\d+$/.test(String(specialtyId))
         let resolvedIdForFilter = String(specialtyId)
         if (isId) {
-          const specialtyResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/especialidades/${specialtyId}`, {
+          const specialtyResponse = await axios.get(`http://10.129.180.166:36560/api3/v1/especialidades/${specialtyId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Accept': 'application/json'
@@ -69,7 +69,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
           resolvedIdForFilter = String(specialtyResponse.data.especialidadId ?? specialtyId)
           setResolvedSpecialtyId(resolvedIdForFilter)
         } else {
-          const res = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
+          const res = await axios.get('http://10.129.180.166:36560/api3/v1/especialidades/agenda', {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Accept': 'application/json'
@@ -84,7 +84,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
         }
 
         // 2. Obtener todos los médicos con sus detalles
-        const allDoctorsResponse = await axios.get('http://10.129.180.161:36560/api3/v1/medico', {
+        const allDoctorsResponse = await axios.get('http://10.129.180.166:36560/api3/v1/medico', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -105,7 +105,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
           const results = await Promise.allSettled(
             allDoctorsResponse.data.map(async (doctorId: number) => {
               try {
-                const doctorResponse = await axios.get(`http://10.129.180.161:36560/api3/v1/medico/${doctorId}`, {
+                const doctorResponse = await axios.get(`http://10.129.180.166:36560/api3/v1/medico/${doctorId}`, {
                   headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -113,7 +113,8 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
                 })
                 return doctorResponse.data
               } catch (err) {
-                console.error(`Error obteniendo médico ${doctorId}:`, (err as Error).message)
+                // En producción, no deberíamos loggear errores de usuario
+                // console.error(`Error obteniendo médico ${doctorId}:`, (err as Error).message)
                 return null
               }
             })
@@ -145,7 +146,8 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
 
         setAllDoctors(doctorsData)
       } catch (err) {
-        console.error('Error fetching doctors:', err)
+        // En producción, no deberíamos loggear errores de usuario
+        // console.error('Error fetching doctors:', err)
         setError('Error al cargar los doctores. Intente nuevamente más tarde.')
       } finally {
         setLoading(false)

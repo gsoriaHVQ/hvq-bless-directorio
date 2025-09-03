@@ -3,16 +3,13 @@
 import { useRouter, usePathname } from "next/navigation"
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { HomeIcon, ArrowLeftIcon, ArrowUpIcon } from 'lucide-react'
+import { HomeIcon, ArrowLeftIcon, ChevronUpIcon } from 'lucide-react'
 import { CurrentTime } from "@/components/current-time"
 import { Footer } from "@/components/footer"
 import type { ReactNode } from "react"
 import Image from "next/image"
-
-interface DirectorioLayoutProps {
-  children: ReactNode
-  showBackButton?: boolean
-}
+import { config } from "@/lib/config"
+import type { DirectorioLayoutProps } from "@/lib/types"
 
 export function DirectorioLayout({ children, showBackButton = true }: DirectorioLayoutProps) {
   const router = useRouter()
@@ -55,7 +52,7 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
               )}
               <div className="flex items-center gap-3">
                 <Image
-                  src="http://horizon-html:35480/public/img_directorio/logo.svg"
+                  src={config.images.logo}
                   alt="Hospital Vozandes Quito"
                   width={450}
                   height={450}
@@ -88,7 +85,7 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
               {/* Logo y nombre del hospital */}
               <div className="flex items-center gap-3 cursor-pointer" onClick={handleGoHome}>
                 <Image
-                  src="/images/hvq_2025_1.png"
+                  src={config.images.hvqLogo}
                   alt="Hospital Vozandes Quito"
                   width={200}
                   height={200}
@@ -140,13 +137,13 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
 
       {/* Botón flotante Volver Arriba (centrado abajo sobre el footer) */}
       {showScrollTop && (
-        <div className="fixed bottom-6 inset-x-0 flex justify-center z-50">
+        <div className="fixed bottom-12 inset-x-0 flex justify-center z-50">
           <Button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             aria-label="Volver Arriba"
-            className="bg-primary text-primary-foreground hover:bg-accent1 p-8 rounded-full shadow-2xl"
+            className="bg-primary text-primary-foreground hover:bg-accent1 p-12 rounded-full shadow-2xl"
           >
-            <ArrowUpIcon className="w-12 h-12" />
+            <ChevronUpIcon className="w-40 h-40" />
           </Button>
         </div>
       )}

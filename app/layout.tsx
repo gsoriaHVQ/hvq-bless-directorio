@@ -5,10 +5,11 @@ import './globals.css'
 import 'react-simple-keyboard/build/css/index.css'
 import IdleRedirect from '@/components/idle-redirect'
 import DisableZoomAndContext from '@/components/disable-zoom-and-context'
+import { config } from '@/lib/config'
 
 export const metadata: Metadata = {
-  title: 'hvq-dir',
-  description: 'Directorio Edificio Bless',
+  title: config.app.title,
+  description: config.app.description,
 }
 
 export default function RootLayout({
@@ -30,7 +31,7 @@ html {
       </head>
       <body>
         <DisableZoomAndContext />
-        <IdleRedirect timeoutMs={30000} homePath="/">
+        <IdleRedirect timeoutMs={config.app.idleTimeout} homePath="/">
           {children}
         </IdleRedirect>
       </body>

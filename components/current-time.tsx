@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge" 
-
-interface CurrentTimeProps {
-  variant?: 'full' | 'compact'
-}
+import type { CurrentTimeProps } from "@/lib/types"
 
 export function CurrentTime({ variant = 'full' }: CurrentTimeProps) {
   const [nowText, setNowText] = useState("")

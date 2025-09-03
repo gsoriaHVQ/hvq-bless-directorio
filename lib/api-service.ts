@@ -1,63 +1,24 @@
 // API Service for Hospital Vozandes Quito Medical Scheduling System
-// Conectado al backend real en puerto 3001
+import { config } from './config'
+import type { 
+  Doctor, 
+  Agenda, 
+  Edificio, 
+  ConsultorioNormalizado, 
+  AgendaDetallada, 
+  ApiResponse 
+} from './types'
 
-// Tipos mínimos para evitar dependencias externas. Amplíalos si es necesario.
-export interface Doctor { [key: string]: unknown }
-export interface Agenda { [key: string]: unknown }
-export interface Edificio { [key: string]: unknown }
 
-export interface ConsultorioNormalizado {
-  codigo_consultorio: string
-  codigo_edificio?: string
-  piso?: string | number
-  des_piso?: string
-  descripcion_consultorio?: string
-  // Campo crudo original por si se requiere depurar
-  __raw?: Record<string, unknown>
-}
-
-export interface AgendaDetallada {
-  // Origen directo de AGND_AGENDA
-  codigo_item_agendamiento?: string | number
-  codigo_prestador?: string | number
-  codigo_dia?: string | number
-  hora_inicio?: string | number
-  hora_fin?: string | number
-  tipo?: string
-  codigo_consultorio?: string | number
-
-  // Derivados / decodificados
-  especialidad?: string // primer elemento de doctor.especialidades
-  medico?: string // doctor.nombres
-  diaNombre?: string // Lunes..Domingo
-  horaInicioHHmm?: string // HH:mm
-  horaFinHHmm?: string // HH:mm
-  consultorioDescripcion?: string
-  consultorioCodigo?: string
-  edificioDescripcion?: string
-  tipoTexto?: string // Consulta / Procedimiento
-
-  // Extras útiles para UI
-  piso?: string | number
-  buildingCode?: string
-}
 
 // Configuración para conectar con el backend real
 const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://10.129.180.151:3001',
-  TIMEOUT: 30000, // 30 segundos
-  DEFAULT_HEADERS: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+  BASE_URL: config.api.baseUrl,
+  TIMEOUT: config.api.timeout,
+  DEFAULT_HEADERS: config.headers
 }
 
-// API Response types
-export interface ApiResponse<T> {
-  data: T
-  success: boolean
-  message?: string
-}
+
 
 class ApiService {
   private baseURL: string
@@ -273,9 +234,7 @@ class ApiService {
       ? (edificiosRes.data as Record<string, unknown>[])
       : (Array.isArray((edificiosRes.data as any)?.data) ? ((edificiosRes.data as any).data as Record<string, unknown>[]) : [])
 
-    // Debug: Log para ver qué datos llegan de los endpoints
-    // console.debug('Consultorios raw:', consultoriosRaw.slice(0, 2))
-    // console.debug('Edificios:', edificios.slice(0, 2))
+
 
     const diasCatalogo: Record<string, unknown>[] = Array.isArray(diasRes.data)
       ? (diasRes.data as Record<string, unknown>[])
@@ -283,8 +242,6 @@ class ApiService {
 
     // Normalizar consultorios desde API (acepta CD_CONSULTORIO/CD_EDIFICIO/CD_PISO/DES_CONSULTORIO)
     const normalizarConsultorio = (c: Record<string, unknown>): ConsultorioNormalizado => {
-      // Debug: Log para ver qué datos llegan del consultorio
-      // console.debug(`Normalizando consultorio raw:`, c)
       
       const codigo = String(
         (c as any).codigo ?? (c as any).id ?? (c as any).codigo_consultorio ?? (c as any).CD_CONSULTORIO ?? (c as any).consultorio_id ?? ''
@@ -313,9 +270,6 @@ class ApiService {
         __raw: c
       }
       
-      // Debug: Log para ver el resultado de la normalización
-      // console.debug(`Consultorio normalizado:`, result)
-      
       return result
     }
 
@@ -324,31 +278,20 @@ class ApiService {
       const norm = normalizarConsultorio(c)
       if (norm.codigo_consultorio) {
         consultorioPorCodigo.set(norm.codigo_consultorio, norm)
-        // Debug: Log para ver qué consultorios se están mapeando
-        // console.debug(`Mapeando consultorio código ${norm.codigo_consultorio}:`, {
-        //   codigo_edificio: norm.codigo_edificio,
-        //   piso: norm.piso,
-        //   descripcion: norm.descripcion_consultorio,
-        //   raw: norm.__raw
-        // })
       }
     })
     
-    // Debug: Log para ver todos los códigos de consultorio disponibles
-    // console.debug(`Códigos de consultorio disponibles:`, Array.from(consultorioPorCodigo.keys()))
+
 
     const edificioPorCodigo = new Map<string, Record<string, unknown>>()
     edificios.forEach((e) => {
       const codigo = String((e as any).codigo ?? (e as any).id ?? (e as any).codigoEdificio ?? (e as any).CD_EDIFICIO ?? (e as any).edificio_id ?? '')
       if (codigo) {
         edificioPorCodigo.set(codigo, e)
-        // Debug: Log para ver qué edificios se están mapeando
-        // console.debug(`Mapeando edificio código ${codigo}:`, e)
       }
     })
     
-    // Debug: Log para ver todos los códigos de edificio disponibles
-    // console.debug(`Códigos de edificio disponibles:`, Array.from(edificioPorCodigo.keys()))
+
 
     const diaNombrePorCodigo = new Map<string, string>()
     diasCatalogo.forEach((d) => {
@@ -432,7 +375,6 @@ class ApiService {
     
     // Si no hay agendas específicas, mantener array vacío (no mostrar datos de otros médicos)
     if (!agendas || agendas.length === 0) {
-      // console.debug(`No se encontraron agendas para el médico ${inputCodigo}`)
       agendas = []
     }
 
@@ -444,31 +386,21 @@ class ApiService {
       
       // Doble verificación: solo procesar si coincide con el médico solicitado
       if (prestadorId !== providerCodeToUse) {
-        // console.debug(`Agenda con prestador ${prestadorId} no coincide con médico solicitado ${providerCodeToUse}`)
         return null as any
       }
              const codigoConsultorio = String(
          (a as any).codigo_consultorio ?? (a as any).consultorio ?? (a as any).consultorioCodigo ?? ''
        )
        
-       // Debug: Log para ver qué código de consultorio estamos buscando
-       // console.debug(`Buscando consultorio con código: ${codigoConsultorio}`)
-       // console.debug(`Agenda completa:`, a)
-       
        const consultorio = consultorioPorCodigo.get(codigoConsultorio)
-       
-       // Debug: Log para ver si encontramos el consultorio
-       // console.debug(`Consultorio encontrado:`, consultorio)
       
                     // FLUJO CORRECTO: Agenda -> Consultorio -> Edificio -> Piso
        
        // 1. Obtener código del edificio desde el consultorio
        const buildingCode = String(consultorio?.codigo_edificio ?? '')
-       // console.debug(`Building code from consultorio: ${buildingCode}`)
        
        // 2. Buscar el edificio por su código
        const edificioRaw = buildingCode ? edificioPorCodigo.get(buildingCode) : undefined
-       // console.debug(`Edificio encontrado para código ${buildingCode}:`, edificioRaw)
        
        // 3. Obtener descripción del edificio del catálogo de edificios
        let edificioDescripcion = ''
@@ -485,11 +417,8 @@ class ApiService {
        
        // 4. Si no encuentra el edificio, no usar fallback artificial; dejar vacío
        
-       // console.debug(`Edificio descripción final:`, edificioDescripcion)
-       
        // 5. Obtener código del piso desde el consultorio
        const pisoCodigo = consultorio?.piso ?? (consultorio?.__raw as any)?.CD_PISO ?? (consultorio?.__raw as any)?.codigo_piso
-       // console.debug(`Piso código desde consultorio:`, pisoCodigo)
        
        // 6. Usar el piso real si existe; de lo contrario, dejar vacío
        let pisoFormateado = ''
@@ -500,8 +429,6 @@ class ApiService {
        
        // 6b. Descripción del piso desde el catálogo de consultorios (si existe)
        const pisoDescripcion = consultorio?.des_piso ? String(consultorio.des_piso) : ''
-       
-       // console.debug(`Piso formateado:`, pisoFormateado)
 
       const medicoRaw = medicoPorId.get(prestadorId)
       const medicoNombre = String((medicoRaw as any)?.nombres ?? '')

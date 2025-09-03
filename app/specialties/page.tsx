@@ -12,13 +12,8 @@ import { SearchIcon } from 'lucide-react'
 import axios from "axios"
 import { getAccessToken } from "../../lib/auth"
 import { Spinner } from "@/components/ui/spinner"
-
-interface Especialidad {
-  especialidadId: number
-  descripcion: string | null
-  tipo: string | null
-  icono: string | null
-}
+import { config } from "@/lib/config"
+import type { Especialidad } from "@/lib/types"
 
 export default function SpecialtiesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -30,23 +25,24 @@ export default function SpecialtiesPage() {
   useEffect(() => {
     const fetchSpecialties = async () => {
       try {
-        // Cacheado simple en sessionStorage por 60s
+        // Cacheado simple en sessionStorage
         const cacheKey = 'specialties_agenda_cache_v1'
         const cached = typeof window !== 'undefined' ? sessionStorage.getItem(cacheKey) : null
         if (cached) {
           const parsed = JSON.parse(cached)
-          if (parsed?.ts && Date.now() - parsed.ts < 60000 && Array.isArray(parsed.data)) {
+          if (parsed?.ts && Date.now() - parsed.ts < config.cache.specialties && Array.isArray(parsed.data)) {
             setSpecialties(parsed.data)
             return
           }
         }
 
         const token = await getAccessToken()
-        const response = await axios.get('http://10.129.180.161:36560/api3/v1/especialidades/agenda', {
+        const response = await axios.get(`${config.api.authUrl}/especialidades/agenda`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
-          }
+          },
+          timeout: config.api.timeout
         })
 
         // Traer TODAS las especialidades válidas, ordenadas alfabéticamente
@@ -58,7 +54,8 @@ export default function SpecialtiesPage() {
           sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: fullList }))
         }
       } catch (err) {
-        console.error('Error fetching specialties:', err)
+        // En producción, no deberíamos loggear errores de usuario
+        // console.error('Error fetching specialties:', err)
         setError('Error al cargar las especialidades. Intente nuevamente más tarde.')
       } finally {
         setLoading(false)
