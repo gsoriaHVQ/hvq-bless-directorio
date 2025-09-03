@@ -3,6 +3,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { UserRoundIcon as UserRoundMedical, Loader2 as Loader2Icon } from 'lucide-react'
 import { memo, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+import "@/styles/doctores.css"
 
 interface DoctorCardProps {
   doctor: {
@@ -47,17 +48,17 @@ export const DoctorCard = memo(function DoctorCard({ doctor, specialtyName, base
                     hover:shadow-xl transform hover:scale-105 flex flex-col items-center 
                     justify-center py-4 h-[18rem] w-[300px] group ${className || ''}`}
       >
-        <CardContent className="flex flex-col items-center justify-center py-4 w-full">
+        <CardContent className="doctor-card-content">
           {showIcon ? (
             <UserRoundMedical 
               className="w-20 h-20 mb-4 text-primary group-hover:text-primary-foreground" 
               aria-hidden="true" 
             />
           ) : (
-            <div className="relative mb-4" style={{ width: 120, height: 120 }}>
+            <div className="doctor-card-image-container">
               {isImageLoading && (
                 <>
-                  <Skeleton className="w-[120px] h-[120px] rounded-full" />
+                  <Skeleton className="doctor-card-skeleton" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Loader2Icon className="w-4 h-4 text-primary animate-spin" aria-label="Cargando" />
                   </div>
@@ -67,12 +68,12 @@ export const DoctorCard = memo(function DoctorCard({ doctor, specialtyName, base
               <img
                 src={doctor.photo as string}
                 alt={`Foto de ${doctor.name}`}
-                width={120}
-                height={120}
+                width={80}
+                height={80}
                 loading="lazy"
                 decoding="async"
                 draggable={false}
-                className={`rounded-full object-cover ${isImageLoading ? 'invisible' : ''}`}
+                className={`doctor-card-image ${isImageLoading ? 'invisible' : ''}`}
                 onLoad={() => setIsImageLoading(false)}
                 onError={() => {
                   setHasImageError(true)
@@ -82,11 +83,11 @@ export const DoctorCard = memo(function DoctorCard({ doctor, specialtyName, base
             </div>
           )}
           <div className="w-full">
-            <CardTitle className={`${nameSize} font-bold text-center leading-tight mb-2 line-clamp-2`}>
+            <CardTitle className={`doctor-card-name ${nameSize} text-center leading-tight mb-2 line-clamp-2`}>
               {doctor.name}
             </CardTitle>
             {!isCompact && (
-              <p className={`${specialtySize} text-accent2 text-center leading-tight line-clamp-2`}>
+              <p className={`doctor-card-specialty ${specialtySize} text-accent2 text-center leading-tight line-clamp-2`}>
                 {specialtyName}
               </p>
             )}

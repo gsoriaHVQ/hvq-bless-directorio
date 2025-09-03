@@ -10,47 +10,67 @@ export default function SelectionPage() {
     <DirectorioLayout>
       <div style={{ paddingTop: '20px' }}>
         {/* Contenedor principal con fondo marrón oscuro */}
-        <div className="selection-main-container" style={{ borderTopLeftRadius: '2rem', borderTopRightRadius: '2rem' }}>
-          <h1 className="selection-title">¿Cómo deseas buscar?</h1>
-          <div className="selection-three-columns-layout" style={{ alignItems: 'stretch', paddingBottom: '25px' }}>
-            <div className="selection-column" style={{ order: 1 }}>
+        <div className="selection-main-container" style={{ 
+          borderTopLeftRadius: '2rem', 
+          borderTopRightRadius: '2rem',
+          minHeight: '80vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'justify content'
+        }}>
+          {/* Contenedor de botones */}
+          <div className="buttons-container" style={{ padding: '40px'}}>
+            <h1 className="selection-title" style={{ padding: '20px', marginBottom: '70px', fontSize: '3rem' }}>¿Cómo deseas buscar?</h1>
+            
+            {/* Botones de selección en disposición horizontal */}
+            <div className="flex flex-row justify-center gap-10" style={{ paddingBottom: '2rem' }}>
               <Link href="/specialties" passHref>
-                <Card className="selection-card" style={{ height: '28rem' }}>
-                  <CardContent className="selection-card-content" style={{ height: '100%', padding: '3rem 4rem' }}>
-                    <StethoscopeIcon className="selection-card-icon" style={{ width: '10rem', height: '10rem' }} />
+                <Card className="selection-card" style={{ height: '28rem', width: '25rem' }}>
+                  <CardContent className="selection-card-content" style={{ height: '100%', padding: '3rem 2rem' }}>
+                    <StethoscopeIcon className="selection-card-icon" style={{ width: '8rem', height: '8rem' }} />
                     <CardTitle className="selection-card-title">Buscar por Especialidad</CardTitle>
                   </CardContent>
                 </Card>
               </Link>
-            </div>
-            <div className="selection-column" style={{ order: 2 }}>
+              
               <Link href="/doctors/search" passHref>
-                <Card className="selection-card" style={{ height: '28rem' }}>
-                  <CardContent className="selection-card-content" style={{ height: '100%', padding: '3rem 4rem' }}>
-                    <UserSearchIcon className="selection-card-icon" style={{ width: '10rem', height: '10rem' }} />
+                <Card className="selection-card" style={{ height: '28rem', width: '25rem' }}>
+                  <CardContent className="selection-card-content" style={{ height: '100%', padding: '3rem 2rem' }}>
+                    <UserSearchIcon className="selection-card-icon" style={{ width: '8rem', height: '8rem' }} />
                     <CardTitle className="selection-card-title">Buscar por Médico</CardTitle>
                   </CardContent>
                 </Card>
               </Link>
             </div>
           </div>
-        </div>
-        
-        {/* Banner inferior como footer */}
-        <div className="mt-20 md:mt-24 w-full px-4">
-          <div className="mx-auto w-full max-w-6xl">
-            <div className="relative w-full rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden" style={{ aspectRatio: '2048 / 737' }}>
-              <Image
-                src="http://horizon-html:35480/public/img_directorio/banner.png"
-                alt="Encuentra a tu especialista en nuestro Directorio Médico"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
+
+          {/* Contenedor del video */}
+          <div className="video-container" style={{ padding: '20px', marginTop: '40px' }}>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="rounded-2xl"
+              style={{ 
+                maxWidth: '100%', 
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain'
+              }}
+            >
+              <source src="http://horizon-html:35480/public/img_directorio/QR_Bless_Animado.mp4" type="video/mp4" />
+              Tu navegador no soporta el elemento de video.
+            </video>
           </div>
         </div>
+
+
+
+
       </div>
     </DirectorioLayout>
   )
 }
+  
+

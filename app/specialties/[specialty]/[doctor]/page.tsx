@@ -381,21 +381,37 @@ export default function SchedulePage() {
                   </div>
                 </CardHeader>
                 <CardContent className="consultation-days-content">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className={`grid gap-4 ${
+                    consultaDays.length === 1 
+                      ? 'grid-cols-1 justify-items-center' 
+                      : consultaDays.length <= 3 
+                        ? 'grid-cols-3 justify-items-center' 
+                        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center'
+                  }`}>
                     {consultaDays.map((day) => {
                       const isSelected = isDaySelected(day, 'consulta')
                       return (
                         <Card
                           key={day}
                           onClick={() => { setSelectedDay(day); setSelectedKind('consulta') }}
-                          className={`consultation-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center h-24 w-full text-center cursor-pointer transition-all duration-200 hover:shadow-md`}
+                          className={`consultation-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 hover:shadow-md ${
+                            isSelected 
+                              ? 'h-28 w-40' // Más grande cuando está seleccionado
+                              : 'h-20 w-32' // Tamaño normal por defecto
+                          }`}
                         >
-                          <CardTitle className="consultation-day-title text-lg font-semibold text-[#7F0C43] mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                          <CardTitle className={`consultation-day-title font-semibold text-[#7F0C43] mb-3 transition-all duration-300 ${
+                            isSelected ? 'text-lg' : 'text-base'
+                          }`} style={{ fontFamily: "'Century Gothic', sans-serif" }}>
                             {dayNames[day]}
                           </CardTitle>
-                          <div className="flex items-center gap-2">
-                            <ClipboardListIcon className="h-4 w-4 text-[#7F0C43]" />
-                            <CalendarCheckIcon className="h-4 w-4 text-[#7F0C43]" />
+                          <div className="flex items-center gap-3 px-2">
+                            <ClipboardListIcon className={`text-[#7F0C43] transition-all duration-300 ${
+                              isSelected ? 'h-6 w-6' : 'h-5 w-5'
+                            }`} />
+                            <CalendarCheckIcon className={`text-[#7F0C43] transition-all duration-300 ${
+                              isSelected ? 'h-6 w-6' : 'h-5 w-5'
+                            }`} />
                           </div>
                         </Card>
                       )
@@ -417,21 +433,37 @@ export default function SchedulePage() {
                   </div>
                 </CardHeader>
                 <CardContent className="procedure-days-content">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className={`grid gap-4 ${
+                    procedimientoDays.length === 1 
+                      ? 'grid-cols-1 justify-items-center' 
+                      : procedimientoDays.length <= 3 
+                        ? 'grid-cols-3 justify-items-center' 
+                        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center'
+                  }`}>
                     {procedimientoDays.map((day) => {
                       const isSelected = isDaySelected(day, 'procedimiento')
                       return (
                         <Card
                           key={day}
                           onClick={() => { setSelectedDay(day); setSelectedKind('procedimiento') }}
-                          className={`procedure-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center h-24 w-full text-center cursor-pointer transition-all duration-200 hover:shadow-md`}
+                          className={`procedure-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 hover:shadow-md ${
+                            isSelected 
+                              ? 'h-32 w-48' // Más grande cuando está seleccionado
+                              : 'h-24 w-40' // Tamaño normal por defecto más grande
+                          }`}
                         >
-                          <CardTitle className="procedure-day-title text-lg font-semibold text-[#7F0C43] mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                          <CardTitle className={`procedure-day-title font-semibold text-[#7F0C43] mb-3 transition-all duration-300 ${
+                            isSelected ? 'text-lg' : 'text-base'
+                          }`} style={{ fontFamily: "'Century Gothic', sans-serif" }}>
                             {dayNames[day]}
                           </CardTitle>
-                          <div className="flex items-center gap-2">
-                            <ScissorsIcon className="h-4 w-4 text-[#7F0C43]" />
-                            <CalendarCheckIcon className="h-4 w-4 text-[#7F0C43]" />
+                          <div className="flex items-center gap-3 px-2">
+                            <ScissorsIcon className={`text-[#7F0C43] transition-all duration-300 ${
+                              isSelected ? 'h-6 w-6' : 'h-5 w-5'
+                            }`} />
+                            <CalendarCheckIcon className={`text-[#7F0C43] transition-all duration-300 ${
+                              isSelected ? 'h-6 w-6' : 'h-5 w-5'
+                            }`} />
                           </div>
                         </Card>
                       )

@@ -198,11 +198,13 @@ class ApiService {
   async getAgendasDetalladasPorMedico(codigoPrestador: string | number): Promise<ApiResponse<AgendaDetallada[]>> {
     // Cargar en paralelo
     const inputCodigo = String(codigoPrestador)
-    const [agendasRes, medicosRes, consultoriosRes, edificiosRes, diasRes] = await Promise.all([
+    //const inputCodigoEdificio = String(codigoEdificio)
+    const [agendasRes, medicosRes, consultoriosRes, edificiosRes, pisoRes, diasRes] = await Promise.all([
       this.getAgendasPorMedico(inputCodigo),
       this.getDoctores(),
       this.getConsultorios(),
       this.getEdificios(),
+      this.getPisosEdificio(String(2)),
       this.getDias()
     ])
 
@@ -248,18 +250,25 @@ class ApiService {
       )
       const edificio = String(
         (c as any).codigo_edificio ?? (c as any).edificio ?? (c as any).CD_EDIFICIO ?? (c as any).codigoEdificio ?? (c as any).edificio_id ?? (c as any).edificioId ?? ''
+      
       )
-      const piso = (c as any).piso ?? (c as any).CD_PISO ?? (c as any).codigoPiso ?? (c as any).piso_id ?? (c as any).pisoId
-      const des_piso = (c as any).des_piso ?? (c as any).DES_PISO ?? (c as any).descripcion_piso ?? (c as any).DESCRIPCION_PISO ?? (c as any).descripcionPiso ?? (c as any).piso_descripcion
-      // Priorizar campo de descripción del consultorio en diferentes variantes
-      const descripcion = (c as any).des_consultorio
-        ?? (c as any).DES_CONSULTORIO
-        ?? (c as any).descripcion_consultorio
-        ?? (c as any).DESCRIPCION_CONSULTORIO
-        ?? (c as any).descripcion
-        ?? (c as any).nombre
-        ?? (c as any).consultorio
-        ?? (c as any).consultorio_nombre
+
+      const piso = String(
+        (c as any).pisoRes ?? (c as any).CD_PISO ?? (c as any).codigoPiso ?? (c as any).piso_id ?? (c as any).pisoId
+      )
+      // const piso = (c as any).piso ?? (c as any).CD_PISO ?? (c as any).codigoPiso ?? (c as any).piso_id ?? (c as any).pisoId
+      const des_piso = (
+        (c as any).pisoRes ?? (c as any).DES_PISO ?? (c as any).descripcion_piso ?? (c as any).DESCRIPCION_PISO ?? (c as any).descripcionPiso ?? (c as any).piso_descripcion
+      )
+      // // Priorizar campo de descripción del consultorio en diferentes variantes
+      const descripcion = (c as any).des_piso
+      //   ?? (c as any).DES_CONSULTORIO
+      //   ?? (c as any).descripcion_consultorio
+      //   ?? (c as any).DESCRIPCION_CONSULTORIO
+      //   ?? (c as any).descripcion
+      //   ?? (c as any).nombre
+      //   ?? (c as any).consultorio
+      //   ?? (c as any).consultorio_nombre
       
       const result = {
         codigo_consultorio: codigo,

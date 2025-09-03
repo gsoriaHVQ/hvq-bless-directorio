@@ -10,7 +10,6 @@ import type { VirtualKeyboardProps } from "@/lib/types"
 export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter }: VirtualKeyboardProps) {
   const keyboardRef = useRef<HTMLDivElement>(null)
   const keyboardInstanceRef = useRef<any>(null)
-  const [layoutName, setLayoutName] = useState<"default" | "shift">("default")
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
@@ -39,10 +38,6 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
   }, [value])
 
   const handleKeyPress = (button: string) => {
-    if (button === "{shift}" || button === "{lock}") {
-      setLayoutName((prev) => (prev === "default" ? "shift" : "default"))
-      return
-    }
     if (button === "{enter}") {
       if (onEnter) onEnter()
       return
@@ -106,18 +101,12 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
     setIsDragging(true)
   }
 
-  // Layout del teclado y etiquetas de teclas
+  // Layout del teclado y etiquetas de teclas - solo mayúsculas
   const layout: KeyboardLayoutObject = {
     default: [
-      "q w e r t y u i o p",
-      "a s d f g h j k l ñ",
-      "{shift} z x c v b n m {bksp}",
-      "{space}"
-    ],
-    shift: [
       "Q W E R T Y U I O P",
       "A S D F G H J K L Ñ",
-      "{shift} Z X C V B N M {bksp}",
+      "Z X C V B N M {bksp}",
       "{space}"
     ]
   }
@@ -153,7 +142,6 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
 
         <Keyboard
           keyboardRef={(r) => (keyboardInstanceRef.current = r)}
-          layoutName={layoutName}
           layout={layout}
           display={display}
           onChange={(input: string) => onChange(input)}

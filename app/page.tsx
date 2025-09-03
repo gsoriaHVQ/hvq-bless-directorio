@@ -1,11 +1,30 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { DirectorioLayout } from "@/components/directorio-layout"
 import { SearchIcon } from 'lucide-react'
 import { config } from "@/lib/config"
+import { useEffect, useState } from "react"
 
 export default function HomePage() {
+  const [currentBanner, setCurrentBanner] = useState(0)
+  
+  const banners = [
+    "http://horizon-html:35480/public/img_directorio/banner.png",
+    "http://horizon-html:35480/public/img_directorio/banner_2.png",
+    "http://horizon-html:35480/public/img_directorio/banner_3.png"
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length)
+    }, 5000) // Cambia cada 5 segundos
+
+    return () => clearInterval(interval)
+  }, [banners.length])
+
   return (
     <DirectorioLayout showBackButton={false}>
       <div className="flex flex-col items-center justify-center h-full w-full text-center">
@@ -31,17 +50,28 @@ export default function HomePage() {
             </Button>
           </Link>
         </div>
-        {/* Banner inferior homogéneo y proporcional */}
+        
+        {/* Carrusel de banners simple */}
         <div className="mt-20 md:mt-24 w-full px-4">
           <div className="mx-auto w-full max-w-6xl">
             <div className="relative w-full rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden" style={{ aspectRatio: '2048 / 737' }}>
-              <Image
-                src={config.images.banner}
-                alt="Encuentra a tu especialista en nuestro Directorio Médico"
-                fill
-                className="object-contain"
-                priority
-              />
+              {banners.map((banner, index) => (
+                <Image
+                  key={banner}
+                  src={banner}
+                  alt="Encuentra a tu especialista en nuestro Directorio Médico"
+                  fill
+                  className={`object-contain transition-opacity duration-1000 ${
+                    index === currentBanner ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                  }}
+                  priority={index === 0}
+                />
+              ))}
             </div>
           </div>
         </div>
