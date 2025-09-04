@@ -514,7 +514,7 @@ export default function SchedulePage() {
         {selectedDay && doctorSchedules?.[selectedDay] && (
           <div className="w-full flex flex-col items-center">
             <h2 className="text-2xl font-bold text-[#7F0C43] mb-6 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-              Detalles para el día {dayNames[selectedDay]}
+              Detalles día {dayNames[selectedDay]}
 
               
             </h2>
