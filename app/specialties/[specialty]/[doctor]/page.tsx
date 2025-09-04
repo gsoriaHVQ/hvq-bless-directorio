@@ -169,7 +169,7 @@ export default function SchedulePage() {
             time,
             room: item.consultorioDescripcion || 'No especificado',
             building: item.edificioDescripcion || (item as any).buildingCode || 'No especificado',
-            floor: (item as any).pisoDescripcion || item.piso || (item as any).des_piso || 'No especificado',
+            floor: item.piso || (item as any).pisoDescripcion || (item as any).des_piso || 'No especificado',
             tipo: item.tipoTexto || undefined,
           }
           if (!formattedSchedules[dayKey]) formattedSchedules[dayKey] = []
@@ -481,6 +481,8 @@ export default function SchedulePage() {
           <div className="w-full flex flex-col items-center">
             <h2 className="text-2xl font-bold text-[#7F0C43] mb-6 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
               Detalles para {dayNames[selectedDay]}
+
+              
             </h2>
             
             <div className="w-full max-w-4xl mx-auto space-y-3">

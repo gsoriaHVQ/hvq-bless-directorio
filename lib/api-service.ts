@@ -294,21 +294,42 @@ class ApiService {
     
 
     const pisosPorEdificio = new Map<string, Map<string, string>>()
- 
-    const edificioCodigo = '1'
-    const pisosRes = await this.getPisosEdificio(edificioCodigo)
- 
-    console.log('pisosRes para edificio', edificioCodigo, JSON.stringify(pisosRes, null, 2))
- 
-    if (pisosRes.success && Array.isArray(pisosRes.data)) {
-      const mapPisos = new Map<string, string>()
-      pisosRes.data.forEach((p: any) => {
-        const codigoPiso = String(p.codigo_piso ?? '')
-        const desc = String(p.descripcion_piso ?? '')
-        if (codigoPiso) mapPisos.set(codigoPiso, desc)
-      })
-      pisosPorEdificio.set(edificioCodigo, mapPisos)
-    }
+    
+    // Obtener pisos para todos los edificios únicos encontrados en los consultorios
+    const edificiosUnicos = new Set<string>()
+    consultoriosRaw.forEach((c) => {
+      const edificio = String(
+        (c as any).codigo_edificio ?? (c as any).edificio ?? (c as any).CD_EDIFICIO ?? (c as any).codigoEdificio ?? (c as any).edificio_id ?? (c as any).edificioId ?? ''
+      )
+      if (edificio) edificiosUnicos.add(edificio)
+    })
+    
+    // Cargar pisos para cada edificio único
+    const pisosPromises = Array.from(edificiosUnicos).map(async (edificioCodigo) => {
+      const pisosRes = await this.getPisosEdificio(edificioCodigo)
+      console.log('pisosRes para edificio', edificioCodigo, JSON.stringify(pisosRes, null, 2))
+      
+      if (pisosRes.success && pisosRes.data) {
+        // La estructura real es pisosRes.data.data, no pisosRes.data directamente
+        const pisosArray = Array.isArray(pisosRes.data) 
+          ? pisosRes.data 
+          : Array.isArray((pisosRes.data as any)?.data) 
+            ? (pisosRes.data as any).data 
+            : []
+        
+        if (pisosArray.length > 0) {
+          const mapPisos = new Map<string, string>()
+          pisosArray.forEach((p: any) => {
+            const codigoPiso = String(p.codigo_piso ?? p.codigo ?? p.id ?? '')
+            const desc = String(p.descripcion_piso ?? p.descripcion ?? p.nombre ?? p.descripcionPiso ?? '')
+            if (codigoPiso) mapPisos.set(codigoPiso, desc)
+          })
+          pisosPorEdificio.set(edificioCodigo, mapPisos)
+        }
+      }
+    })
+    
+    await Promise.all(pisosPromises)
 
 
     const diaNombrePorCodigo = new Map<string, string>()
@@ -439,19 +460,55 @@ class ApiService {
        const pisoCodigo = consultorio?.piso ?? (consultorio?.__raw as any)?.CD_PISO ?? (consultorio?.__raw as any)?.codigo_piso
        
        let pisoFormateado = ''
-      if (buildingCode && pisoCodigo != null) {
-        const mapPisos = pisosPorEdificio.get(buildingCode)
-        if (mapPisos) {
-          pisoFormateado = mapPisos.get(String(pisoCodigo)) ?? ''
-        }
-      }
- 
-      if (!pisoFormateado) {
-        pisoFormateado = consultorio?.des_piso ? String(consultorio.des_piso) : ''
-      }
+       let pisoDescripcion = ''
        
-       // 6b. Descripción del piso desde el catálogo de consultorios (si existe)
-       const pisoDescripcion = consultorio?.des_piso ? String(consultorio.des_piso) : ''
+       // Prioridad 1: Buscar en el catálogo de pisos del edificio específico
+       if (buildingCode && pisoCodigo != null) {
+         const mapPisos = pisosPorEdificio.get(buildingCode)
+         console.log('Debug piso:', {
+           buildingCode,
+           pisoCodigo,
+           mapPisos: mapPisos ? Object.fromEntries(mapPisos) : null,
+           consultorio: consultorio?.codigo_consultorio
+         })
+         if (mapPisos) {
+           const descripcionDelCatalogo = mapPisos.get(String(pisoCodigo))
+           if (descripcionDelCatalogo) {
+             pisoFormateado = descripcionDelCatalogo
+             pisoDescripcion = descripcionDelCatalogo
+             console.log('Piso encontrado en catálogo:', descripcionDelCatalogo)
+           }
+         }
+       }
+       
+       // Prioridad 2: Usar descripción del consultorio si no se encontró en el catálogo
+       if (!pisoFormateado && consultorio?.des_piso) {
+         pisoFormateado = String(consultorio.des_piso)
+         pisoDescripcion = String(consultorio.des_piso)
+       }
+       
+       // Prioridad 3: Usar descripción del raw data del consultorio
+       if (!pisoFormateado && consultorio?.__raw) {
+         const rawPisoDesc = (consultorio.__raw as any)?.DES_PISO ?? (consultorio.__raw as any)?.descripcion_piso
+         if (rawPisoDesc) {
+           pisoFormateado = String(rawPisoDesc)
+           pisoDescripcion = String(rawPisoDesc)
+         }
+       }
+       
+       // Fallback: mostrar código del piso si no hay descripción
+       if (!pisoFormateado && pisoCodigo != null) {
+         pisoFormateado = `Piso ${pisoCodigo}`
+         pisoDescripcion = `Piso ${pisoCodigo}`
+       }
+       
+       console.log('Resultado final piso:', {
+         pisoFormateado,
+         pisoDescripcion,
+         pisoCodigo,
+         buildingCode,
+         consultorio: consultorio?.codigo_consultorio
+       })
 
       const medicoRaw = medicoPorId.get(prestadorId)
       const medicoNombre = String((medicoRaw as any)?.nombres ?? '')
