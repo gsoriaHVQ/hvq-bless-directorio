@@ -197,19 +197,20 @@
   gap: 1rem;
 }
 .doctor-schedule-details-row {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
 }
 .doctor-schedule-details-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   color: var(--color-primary);
 }
 .doctor-schedule-details-label {
   font-weight: 600;
+  font-size: 1.5rem;
 }
 
 .doctor-schedule-empty-card {

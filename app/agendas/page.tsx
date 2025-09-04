@@ -107,7 +107,6 @@ export default function AgendasPage() {
         }
         
         const res = await fetch(`/api/catalogos/edificios/${edificioSeleccionado}/pisos`, { cache: "no-store" })
-        console.log("2")
 
         if (!res.ok) throw new Error("Error al cargar pisos del edificio")   
         

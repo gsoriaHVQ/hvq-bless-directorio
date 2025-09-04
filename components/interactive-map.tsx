@@ -11,7 +11,7 @@ interface InteractiveMapProps {
 }
 
 export function InteractiveMap({ consultorio, building, floor }: InteractiveMapProps) {
-  const [isMuted, setIsMuted] = useState(true)
+  const [isMuted, setIsMuted] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const toggleMute = () => {

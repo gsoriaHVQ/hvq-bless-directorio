@@ -101,7 +101,7 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
               {/* Mensaje de bienvenida (sin icono) */}
               <div className="flex items-center gap-2">
                 <div className="flex flex-col">
-                  <span className="text-lg font-semibold">Bienvenido</span>
+                  <span className="text-xl md:text-2xl font-semibold">Bienvenido</span>
                 </div>
               </div>
             </div>
@@ -109,8 +109,8 @@ export function DirectorioLayout({ children, showBackButton = true }: Directorio
         </>
       )}
 
-      {/* Barra fija de navegación bajo el header (siempre visible al hacer scroll) */}
-      <div className={`sticky ${isHomePage ? 'top-32' : 'top-24'} z-40 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b`}>
+      {/* Barra fija de navegación bajo el header (oculta solo en inicio) */}
+      <div className={`sticky ${isHomePage ? 'top-32' : 'top-24'} z-40 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b ${isHomePage ? 'hidden' : ''}`}>
         <div className="mx-auto w-full max-w-6xl px-4 md:px-8 lg:px-12 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             {displayBackButton && (

@@ -55,8 +55,8 @@ export function CurrentTime({ variant = 'full' }: CurrentTimeProps) {
     return (
       <div className="flex items-center justify-center gap-2">
         <div className="flex flex-col items-center">
-          <span className="text-2xl font-bold">{mounted ? compactTime : "9:52 AM"}</span>
-          <span className="text-xs">{mounted ? compactDate : "mié 21 may 2025"}</span>
+          <span className="text-3xl md:text-4xl font-semibold">{mounted ? compactTime : "9:52 AM"}</span>
+          <span className="text-sm md:text-base">{mounted ? compactDate : "mié 21 may 2025"}</span>
         </div>
       </div>
     )
@@ -67,7 +67,7 @@ export function CurrentTime({ variant = 'full' }: CurrentTimeProps) {
       <Badge suppressHydrationWarning className="bg-accent1 text-primary-foreground text-4xl md:text-5xl px-6 md:px-8 pt-6 md:pt-8 pb-4 md:pb-5 rounded-full shadow-md font-bold">
         {mounted ? nowText : ""}
       </Badge>
-      <div className="text-lg md:text-xl font-semibold text-gray-700">
+      <div className="text-xl md:text-2xl font-semibold text-gray-700">
         {mounted ? dateText : ""}
       </div>
     </div>

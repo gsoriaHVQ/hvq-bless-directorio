@@ -177,6 +177,40 @@ export default function SchedulePage() {
         })
 
         setDoctorSchedules(formattedSchedules)
+        
+        // Auto-expandir lógica: prioridad 1) día actual, 2) un solo día disponible
+        const availableDays = Object.keys(formattedSchedules).filter((d) => daysOfWeek.includes(d))
+        
+        // Obtener el día actual
+        const today = new Date().toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase()
+        const todayKey = normalizeDayKey(today)
+        
+        let dayToSelect: string | null = null
+        
+        // Prioridad 1: Si el día actual está disponible, seleccionarlo
+        if (availableDays.includes(todayKey)) {
+          dayToSelect = todayKey
+        }
+        // Prioridad 2: Si solo hay un día disponible, seleccionarlo
+        else if (availableDays.length === 1) {
+          dayToSelect = availableDays[0]
+        }
+        
+        if (dayToSelect) {
+          setSelectedDay(dayToSelect)
+          // Determinar el tipo automáticamente si solo hay un tipo en ese día
+          const daySchedules = formattedSchedules[dayToSelect]
+          const hasConsulta = daySchedules.some(sched => isConsulta(sched.tipo))
+          const hasProcedimiento = daySchedules.some(sched => isProcedure(sched.tipo))
+          
+          if (hasConsulta && !hasProcedimiento) {
+            setSelectedKind('consulta')
+          } else if (hasProcedimiento && !hasConsulta) {
+            setSelectedKind('procedimiento')
+          }
+          // Si tiene ambos tipos, no establecer selectedKind para mostrar todos
+        }
+        
         setLoading(false)
       } catch (err) {
         // En producción, no deberíamos loggear errores de usuario
@@ -235,8 +269,8 @@ export default function SchedulePage() {
     const code = String(buildingCode).trim()
     
     // Validación específica para códigos 1 y 2
-    if (code === '1') return 'Edificio Principal'
-    if (code === '2') return 'Edificio Bless'
+    if (code === '1') return 'Principal'
+    if (code === '2') return 'Torre Bless'
     
     // Para otros códigos, mantener la lógica actual
     return code
@@ -480,7 +514,7 @@ export default function SchedulePage() {
         {selectedDay && doctorSchedules?.[selectedDay] && (
           <div className="w-full flex flex-col items-center">
             <h2 className="text-2xl font-bold text-[#7F0C43] mb-6 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-              Detalles para {dayNames[selectedDay]}
+              Detalles para el día {dayNames[selectedDay]}
 
               
             </h2>
@@ -503,25 +537,25 @@ export default function SchedulePage() {
                         <div className="flex items-center gap-2">
                           <CalendarCheckIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
                           <span className="doctor-schedule-details-label font-medium">Horario:</span>
-                          <span className="text-lg">{sched.time}</span>
+                          <span className="text-2xl">{sched.time}</span>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <DoorOpenIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
                           <span className="doctor-schedule-details-label font-medium">Consultorio:</span>
-                          <span className="text-lg">{sched.room}</span>
+                          <span className="text-2xl">{sched.room}</span>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <BuildingIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
                           <span className="doctor-schedule-details-label font-medium">Edificio:</span>
-                          <span className="text-lg">{getBuildingDisplayName(sched.building)}</span>
+                          <span className="text-2xl">{getBuildingDisplayName(sched.building)}</span>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <MapPinIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                          <span className="doctor-schedule-details-label font-medium">Piso:</span>
-                          <span className="text-lg">{sched.floor || 'No especificado'}</span>
+                          <span className="doctor-schedule-details-label font-medium">Ubicación:</span>
+                          <span className="text-2xl">{sched.floor || 'No especificado'}</span>
                         </div>
                       </div>
                     </CardContent>
