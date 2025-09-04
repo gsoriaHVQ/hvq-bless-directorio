@@ -12,7 +12,7 @@ export default function HomePage() {
   const [currentBanner, setCurrentBanner] = useState(0)
   
   const banners = [
-    "http://horizon-html:35480/public/img_directorio/banner.png",
+    "http://horizon-html:35480/public/img_directorio/Banner_Kiosco_actual.png",
     "http://horizon-html:35480/public/img_directorio/banner_2.png",
     "http://horizon-html:35480/public/img_directorio/banner_3.png"
   ]
