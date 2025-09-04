@@ -344,7 +344,7 @@ export default function SchedulePage() {
     <DirectorioLayout>
       <div className="container mx-auto px-4 py-8" style={{ backgroundColor: '#F9F4F6' }}>
         {/* Doctor Profile Section */}
-        <div className="flex flex-col md:flex-row items-center gap-6 mb-10 bg-white rounded-xl shadow-sm p-6 border border-[#E5E5E5]">
+        <div className="flex flex-col md:flex-row items-center gap-6 mb-10 rounded-xl shadow-sm p-6 border border-[#E5E5E5]">
           <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-[#F9F4F6] overflow-hidden flex items-center justify-center">
             {doctorInfo.photo && !photoError ? (
               <img
@@ -379,7 +379,7 @@ export default function SchedulePage() {
 
           {availableDays.length === 0 && (
             <div className="no-schedule-message w-full max-w-2xl mx-auto">
-              <Card className="no-schedule-card bg-white border border-[#E5E5E5] shadow-lg">
+              <Card className="no-schedule-card border border-[#E5E5E5] shadow-lg">
                 <CardHeader>
                   <CardTitle className="no-schedule-title text-2xl font-bold text-[#7F0C43] text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>Sin horarios disponibles</CardTitle>
                 </CardHeader>
@@ -405,7 +405,7 @@ export default function SchedulePage() {
           <div className="w-full max-w-2xl mx-auto space-y-8">
             {/* Días de Consulta */}
             {consultaDays.length > 0 && (
-              <Card className="consultation-days-card bg-white border border-[#E5E5E5] shadow-sm">
+              <Card className="consultation-days-card border border-[#E5E5E5] shadow-sm">
                 <CardHeader className="consultation-days-header">
                   <div className="flex items-center gap-3">
                     <ClipboardListIcon className="h-6 w-6 text-[#7F0C43]" />
@@ -457,7 +457,7 @@ export default function SchedulePage() {
 
             {/* Días de Procedimiento */}
             {procedimientoDays.length > 0 && (
-              <Card className="procedure-days-card bg-white border border-[#E5E5E5] shadow-sm">
+              <Card className="procedure-days-card border border-[#E5E5E5] shadow-sm">
                 <CardHeader className="procedure-days-header">
                   <div className="flex items-center gap-3">
                     <ScissorsIcon className="h-6 w-6 text-[#7F0C43]" />
@@ -526,7 +526,7 @@ export default function SchedulePage() {
                   return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
                 })
                 .map((sched, idx) => (
-                  <Card key={idx} className="doctor-schedule-details-card w-full mx-auto bg-white border border-[#E5E5E5] shadow-sm">
+                  <Card key={idx} className="doctor-schedule-details-card w-full mx-auto border border-[#E5E5E5] shadow-sm">
                     <CardHeader className="doctor-schedule-details-header">
                       <CardTitle className="doctor-schedule-details-title text-xl font-bold text-[#7F0C43] text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
                         {sched.tipo || 'Horario'}

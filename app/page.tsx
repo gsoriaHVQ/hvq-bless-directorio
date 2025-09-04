@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { DirectorioLayout } from "@/components/directorio-layout"
-import { SearchIcon } from 'lucide-react'
+import { ArrowRight} from 'lucide-react'
 import { config } from "@/lib/config"
 import { useEffect, useState } from "react"
 
@@ -50,9 +50,9 @@ export default function HomePage() {
 
             {/* Botón principal - lleva a la pantalla de selección */}
             <Link href="/selection" passHref>
-              <Button className="bg-primary text-primary-foreground hover:bg-accent1 text-5xl px-20 py-14 rounded-full shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105 inline-flex items-center gap-5">
-                <SearchIcon className="w-12 h-12" style={{ width: '3rem', height: 'auto' }} />
+              <Button className="bg-primary text-primary-foreground hover:bg-accent1 text-5xl px-20 py-14 rounded-full shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105 inline-flex items-center gap-5 border-2 border-white/30">
                 ¡Comenzar!
+                <ArrowRight className="w-18 h-12" style={{width: '3.5rem', height: 'auto' }} />
               </Button>
             </Link>
           </div>
