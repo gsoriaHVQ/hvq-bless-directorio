@@ -438,21 +438,30 @@ export default function SchedulePage() {
                               isSelected ? 'ring-4 ring-[#C84D80] shadow-xl scale-105' : 'shadow-md hover:shadow-lg'
                             }`}
                           >
-                            <CardContent className="p-6 text-center">
-                              <div className="flex items-center justify-center gap-2 mb-2">
-                                <ClipboardListIcon className="h-5 w-5 text-white" />
-                                <CalendarCheckIcon className="h-5 w-5 text-white" />
-                              </div>
-                              <CardTitle className="text-lg font-bold text-white mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-                                {dayNames[day]}
-                              </CardTitle>
-                              {daySchedules.length > 0 && (
-                                <div className="bg-white/20 rounded-lg px-3 py-2 inline-block">
-                                  <span className="text-white font-medium" style={{ fontFamily: "Arial, sans-serif" }}>
-                                    {daySchedules[0].time}
-                                  </span>
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                {/* Íconos a la izquierda */}
+                                <div className="flex items-center gap-2">
+                                  <ClipboardListIcon className="h-6 w-6 text-white" />
+                                  <CalendarCheckIcon className="h-6 w-6 text-white" />
                                 </div>
-                              )}
+                                
+                                {/* Nombre del día en el centro */}
+                                <CardTitle className="text-lg font-bold text-white text-center flex-1 mx-4" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                                  {dayNames[day]}
+                                </CardTitle>
+                                
+                                {/* Horario a la derecha */}
+                                <div className="flex-shrink-0">
+                                  {daySchedules.length > 0 && (
+                                    <div className="bg-white/20 rounded-lg px-3 py-2">
+                                      <span className="text-white font-medium text-sm" style={{ fontFamily: "Arial, sans-serif" }}>
+                                        {daySchedules[0].time}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </CardContent>
                           </Card>
                         )
@@ -490,21 +499,30 @@ export default function SchedulePage() {
                               isSelected ? 'ring-4 ring-[#C84D80] shadow-xl scale-105' : 'shadow-md hover:shadow-lg'
                             }`}
                           >
-                            <CardContent className="p-6 text-center">
-                              <div className="flex items-center justify-center gap-2 mb-2">
-                                <ScissorsIcon className="h-5 w-5 text-white" />
-                                <CalendarCheckIcon className="h-5 w-5 text-white" />
-                              </div>
-                              <CardTitle className="text-lg font-bold text-white mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-                                {dayNames[day]}
-                              </CardTitle>
-                              {daySchedules.length > 0 && (
-                                <div className="bg-white/20 rounded-lg px-3 py-2 inline-block">
-                                  <span className="text-white font-medium" style={{ fontFamily: "Arial, sans-serif" }}>
-                                    {daySchedules[0].time}
-                                  </span>
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                {/* Íconos a la izquierda */}
+                                <div className="flex items-center gap-2">
+                                  <ScissorsIcon className="h-6 w-6 text-white" />
+                                  <CalendarCheckIcon className="h-6 w-6 text-white" />
                                 </div>
-                              )}
+                                
+                                {/* Nombre del día en el centro */}
+                                <CardTitle className="text-lg font-bold text-white text-center flex-1 mx-4" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                                  {dayNames[day]}
+                                </CardTitle>
+                                
+                                {/* Horario a la derecha */}
+                                <div className="flex-shrink-0">
+                                  {daySchedules.length > 0 && (
+                                    <div className="bg-white/20 rounded-lg px-3 py-2">
+                                      <span className="text-white font-medium text-sm" style={{ fontFamily: "Arial, sans-serif" }}>
+                                        {daySchedules[0].time}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </CardContent>
                           </Card>
                         )
