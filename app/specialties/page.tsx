@@ -41,7 +41,7 @@ export default function SpecialtiesPage() {
       })
 
       const doctors = Array.isArray(doctorsResponse.data) ? doctorsResponse.data : []
-      if (doctors.length === 0) return 'Sin agendas'
+      if (doctors.length === 0) return 'Ubicación no disponible'
 
       // Contador de ubicaciones
       const locationCount: { [key: string]: number } = {}
@@ -71,15 +71,15 @@ export default function SpecialtiesPage() {
 
       // Encontrar la ubicación más común
       const locations = Object.entries(locationCount)
-      if (locations.length === 0) return 'Sin agendas'
+      if (locations.length === 0) return 'Ubicación no disponible'
       
       const mostCommonLocation = locations.reduce((prev, current) => 
         current[1] > prev[1] ? current : prev
       )[0]
 
-      return mostCommonLocation || 'Sin agendas'
+      return mostCommonLocation || 'Ubicación no disponible'
     } catch (err) {
-      return 'Sin agendas'
+      return 'Ubicación no disponible'
     }
   }
 
@@ -136,7 +136,7 @@ export default function SpecialtiesPage() {
               // Si falló la obtención de ubicación, usar la especialidad original
               finalList.push({
                 ...batch[batchIndex],
-                ubicacion: 'Sin agendas'
+                ubicacion: ''
               })
             }
           })

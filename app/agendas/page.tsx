@@ -181,7 +181,8 @@ export default function AgendasPage() {
     return (
       <DirectorioLayout>
         <div className="error-container">
-          <h2>No se encontraron agendas</h2>
+          <h2>Error al cargar los datos</h2>
+          <p>{error}</p>
           <button className="retry-button" onClick={() => window.location.reload()}>
             Reintentar
           </button>
