@@ -375,7 +375,9 @@ export default function SchedulePage() {
 
         {/* Schedule Section */}
         <section className="mb-12 flex flex-col items-center">
-          <h1 className="doctor-schedule-title">Horarios de atención</h1>
+          <h1 className="text-3xl font-bold text-[#7F0C43] mb-8 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+            Horarios del Dr. {doctorInfo.name}
+          </h1>
 
           {availableDays.length === 0 && (
             <div className="no-schedule-message w-full max-w-2xl mx-auto">
@@ -402,168 +404,214 @@ export default function SchedulePage() {
             </div>
           )}
 
-          <div className="w-full max-w-2xl mx-auto space-y-8">
-            {/* Días de Consulta */}
-            {consultaDays.length > 0 && (
-              <Card className="consultation-days-card border border-[#E5E5E5] shadow-sm">
-                <CardHeader className="consultation-days-header">
-                  <div className="flex items-center gap-3">
-                    <ClipboardListIcon className="h-6 w-6 text-[#7F0C43]" />
-                    <CardTitle className="consultation-days-title text-xl font-bold text-[#7F0C43]" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-                      Días de Consulta
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="consultation-days-content">
-                  <div className={`grid gap-4 ${
-                    consultaDays.length === 1 
-                      ? 'grid-cols-1 justify-items-center' 
-                      : consultaDays.length <= 3 
-                        ? 'grid-cols-3 justify-items-center' 
-                        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center'
-                  }`}>
-                    {consultaDays.map((day) => {
-                      const isSelected = isDaySelected(day, 'consulta')
-                      return (
-                        <Card
-                          key={day}
-                          onClick={() => { setSelectedDay(day); setSelectedKind('consulta') }}
-                          className={`consultation-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 hover:shadow-md ${
-                            isSelected 
-                              ? 'h-28 w-40' // Más grande cuando está seleccionado
-                              : 'h-20 w-32' // Tamaño normal por defecto
-                          }`}
-                        >
-                          <CardTitle className={`consultation-day-title font-semibold text-[#7F0C43] mb-3 transition-all duration-300 ${
-                            isSelected ? 'text-lg' : 'text-base'
-                          }`} style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-                            {dayNames[day]}
-                          </CardTitle>
-                          <div className="flex items-center gap-3 px-2">
-                            <ClipboardListIcon className={`text-[#7F0C43] transition-all duration-300 ${
-                              isSelected ? 'h-6 w-6' : 'h-5 w-5'
-                            }`} />
-                            <CalendarCheckIcon className={`text-[#7F0C43] transition-all duration-300 ${
-                              isSelected ? 'h-6 w-6' : 'h-5 w-5'
-                            }`} />
-                          </div>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+          <div className="w-full max-w-6xl mx-auto">
+            <div className={`grid gap-8 mb-8 ${
+              consultaDays.length > 0 && procedimientoDays.length > 0 
+                ? 'md:grid-cols-2' 
+                : 'grid-cols-1 place-items-center'
+            }`}>
+              {/* Días de Consulta */}
+              {consultaDays.length > 0 && (
+                <Card className={`bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200 shadow-lg rounded-2xl overflow-hidden ${
+                  procedimientoDays.length === 0 ? 'max-w-md w-full' : ''
+                }`}>
+                  <CardHeader className="bg-gradient-to-r from-pink-100 to-rose-100 pb-4">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="bg-[#7F0C43] p-2 rounded-full">
+                        <ClipboardListIcon className="h-6 w-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-bold text-[#7F0C43]" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                        Días de Consulta
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      {consultaDays.map((day) => {
+                        const daySchedules = (doctorSchedules || {})[day]?.filter(sched => isConsulta(sched.tipo)) || []
+                        const isSelected = isDaySelected(day, 'consulta')
+                        return (
+                          <Card
+                            key={day}
+                            onClick={() => { setSelectedDay(day); setSelectedKind('consulta') }}
+                            className={`bg-[#7F0C43] hover:bg-[#A31E47] transition-all duration-300 cursor-pointer rounded-xl overflow-hidden ${
+                              isSelected ? 'ring-4 ring-[#C84D80] shadow-xl scale-105' : 'shadow-md hover:shadow-lg'
+                            }`}
+                          >
+                            <CardContent className="p-6 text-center">
+                              <div className="flex items-center justify-center gap-2 mb-2">
+                                <ClipboardListIcon className="h-5 w-5 text-white" />
+                                <CalendarCheckIcon className="h-5 w-5 text-white" />
+                              </div>
+                              <CardTitle className="text-lg font-bold text-white mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                                {dayNames[day]}
+                              </CardTitle>
+                              {daySchedules.length > 0 && (
+                                <div className="bg-white/20 rounded-lg px-3 py-2 inline-block">
+                                  <span className="text-white font-medium" style={{ fontFamily: "Arial, sans-serif" }}>
+                                    {daySchedules[0].time}
+                                  </span>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-            {/* Días de Procedimiento */}
-            {procedimientoDays.length > 0 && (
-              <Card className="procedure-days-card border border-[#E5E5E5] shadow-sm">
-                <CardHeader className="procedure-days-header">
-                  <div className="flex items-center gap-3">
-                    <ScissorsIcon className="h-6 w-6 text-[#7F0C43]" />
-                    <CardTitle className="procedure-days-title text-xl font-bold text-[#7F0C43]" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-                      Días de Procedimiento
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="procedure-days-content">
-                  <div className={`grid gap-4 ${
-                    procedimientoDays.length === 1 
-                      ? 'grid-cols-1 justify-items-center' 
-                      : procedimientoDays.length <= 3 
-                        ? 'grid-cols-3 justify-items-center' 
-                        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center'
-                  }`}>
-                    {procedimientoDays.map((day) => {
-                      const isSelected = isDaySelected(day, 'procedimiento')
-                      return (
-                        <Card
-                          key={day}
-                          onClick={() => { setSelectedDay(day); setSelectedKind('procedimiento') }}
-                          className={`procedure-day-card${isSelected ? ' selected' : ''} flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 hover:shadow-md ${
-                            isSelected 
-                              ? 'h-32 w-48' // Más grande cuando está seleccionado
-                              : 'h-24 w-40' // Tamaño normal por defecto más grande
-                          }`}
-                        >
-                          <CardTitle className={`procedure-day-title font-semibold text-[#7F0C43] mb-3 transition-all duration-300 ${
-                            isSelected ? 'text-lg' : 'text-base'
-                          }`} style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-                            {dayNames[day]}
-                          </CardTitle>
-                          <div className="flex items-center gap-3 px-2">
-                            <ScissorsIcon className={`text-[#7F0C43] transition-all duration-300 ${
-                              isSelected ? 'h-6 w-6' : 'h-5 w-5'
-                            }`} />
-                            <CalendarCheckIcon className={`text-[#7F0C43] transition-all duration-300 ${
-                              isSelected ? 'h-6 w-6' : 'h-5 w-5'
-                            }`} />
-                          </div>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+              {/* Días de Procedimiento */}
+              {procedimientoDays.length > 0 && (
+                <Card className={`bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200 shadow-lg rounded-2xl overflow-hidden ${
+                  consultaDays.length === 0 ? 'max-w-md w-full' : ''
+                }`}>
+                  <CardHeader className="bg-gradient-to-r from-pink-100 to-rose-100 pb-4">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="bg-[#7F0C43] p-2 rounded-full">
+                        <ScissorsIcon className="h-6 w-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-bold text-[#7F0C43]" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                        Días de Procedimiento
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      {procedimientoDays.map((day) => {
+                        const daySchedules = (doctorSchedules || {})[day]?.filter(sched => isProcedure(sched.tipo)) || []
+                        const isSelected = isDaySelected(day, 'procedimiento')
+                        return (
+                          <Card
+                            key={day}
+                            onClick={() => { setSelectedDay(day); setSelectedKind('procedimiento') }}
+                            className={`bg-[#7F0C43] hover:bg-[#A31E47] transition-all duration-300 cursor-pointer rounded-xl overflow-hidden ${
+                              isSelected ? 'ring-4 ring-[#C84D80] shadow-xl scale-105' : 'shadow-md hover:shadow-lg'
+                            }`}
+                          >
+                            <CardContent className="p-6 text-center">
+                              <div className="flex items-center justify-center gap-2 mb-2">
+                                <ScissorsIcon className="h-5 w-5 text-white" />
+                                <CalendarCheckIcon className="h-5 w-5 text-white" />
+                              </div>
+                              <CardTitle className="text-lg font-bold text-white mb-2" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                                {dayNames[day]}
+                              </CardTitle>
+                              {daySchedules.length > 0 && (
+                                <div className="bg-white/20 rounded-lg px-3 py-2 inline-block">
+                                  <span className="text-white font-medium" style={{ fontFamily: "Arial, sans-serif" }}>
+                                    {daySchedules[0].time}
+                                  </span>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </section>
 
         {/* Selected Day Details */}
         <div ref={detailsRef} />
         {selectedDay && doctorSchedules?.[selectedDay] && (
-          <div className="w-full flex flex-col items-center">
-            <h2 className="text-2xl font-bold text-[#7F0C43] mb-6 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-              Detalles día {dayNames[selectedDay]}
-
-              
-            </h2>
+          <div className="w-full flex flex-col items-center max-w-4xl mx-auto px-4">
+            {/* Título con ícono */}
+            <div className="flex flex-col items-center mb-8">
+              <div className="bg-[#7F0C43] p-4 rounded-full mb-4">
+                <ClipboardListIcon className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-[#7F0C43] mb-2 text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                Detalles para {dayNames[selectedDay]}
+              </h2>
+              {selectedKind && (
+                <div className="bg-pink-200 px-4 py-2 rounded-full">
+                  <span className="text-[#7F0C43] font-medium capitalize" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                    {selectedKind}
+                  </span>
+                </div>
+              )}
+            </div>
             
-            <div className="w-full max-w-4xl mx-auto space-y-3">
+            {/* Grid de detalles 2x2 */}
+            <div className="w-full max-w-3xl">
               {(doctorSchedules[selectedDay] || [])
                 .filter(sched => {
                   if (!selectedKind) return true
                   return selectedKind === 'consulta' ? isConsulta(sched.tipo) : isProcedure(sched.tipo)
                 })
+                .slice(0, 1) // Solo mostrar el primer horario
                 .map((sched, idx) => (
-                  <Card key={idx} className="doctor-schedule-details-card w-full mx-auto border border-[#E5E5E5] shadow-sm">
-                    <CardHeader className="doctor-schedule-details-header">
-                      <CardTitle className="doctor-schedule-details-title text-xl font-bold text-[#7F0C43] text-center" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
-                        {sched.tipo || 'Horario'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="doctor-schedule-details-content">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <CalendarCheckIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                          <span className="doctor-schedule-details-label font-medium">Horario:</span>
-                          <span className="text-2xl">{sched.time}</span>
+                  <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    {/* Horario */}
+                    <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                      <CardContent className="p-6 text-center">
+                        <div className="bg-[#7F0C43] p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                          <ClockIcon className="h-6 w-6 text-white" />
                         </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <DoorOpenIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                          <span className="doctor-schedule-details-label font-medium">Consultorio:</span>
-                          <span className="text-2xl">{sched.room}</span>
+                        <h3 className="text-sm font-medium text-[#7F0C43] mb-2 uppercase tracking-wide" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                          HORARIO
+                        </h3>
+                        <p className="text-2xl font-bold text-[#7F0C43]" style={{ fontFamily: "Arial, sans-serif" }}>
+                          {sched.time}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Consultorio */}
+                    <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                      <CardContent className="p-6 text-center">
+                        <div className="bg-[#7F0C43] p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                          <DoorOpenIcon className="h-6 w-6 text-white" />
                         </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <BuildingIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                          <span className="doctor-schedule-details-label font-medium">Edificio:</span>
-                          <span className="text-2xl">{getBuildingDisplayName(sched.building)}</span>
+                        <h3 className="text-sm font-medium text-[#7F0C43] mb-2 uppercase tracking-wide" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                          CONSULTORIO
+                        </h3>
+                        <p className="text-2xl font-bold text-[#7F0C43]" style={{ fontFamily: "Arial, sans-serif" }}>
+                          {sched.room}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Edificio */}
+                    <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                      <CardContent className="p-6 text-center">
+                        <div className="bg-[#7F0C43] p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                          <BuildingIcon className="h-6 w-6 text-white" />
                         </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <MapPinIcon className="doctor-schedule-details-icon h-5 w-5 text-[#7F0C43]" />
-                          <span className="doctor-schedule-details-label font-medium">Ubicación:</span>
-                          <span className="text-2xl">{sched.floor || 'No especificado'}</span>
+                        <h3 className="text-sm font-medium text-[#7F0C43] mb-2 uppercase tracking-wide" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                          EDIFICIO
+                        </h3>
+                        <p className="text-2xl font-bold text-[#7F0C43]" style={{ fontFamily: "Arial, sans-serif" }}>
+                          {getBuildingDisplayName(sched.building)}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Piso */}
+                    <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                      <CardContent className="p-6 text-center">
+                        <div className="bg-[#7F0C43] p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                          <MapPinIcon className="h-6 w-6 text-white" />
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                        <h3 className="text-sm font-medium text-[#7F0C43] mb-2 uppercase tracking-wide" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
+                          PISO
+                        </h3>
+                        <p className="text-2xl font-bold text-[#7F0C43]" style={{ fontFamily: "Arial, sans-serif" }}>
+                          {sched.floor || 'No especificado'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
                 ))}
             </div>
 
-            {/* Mapa interactivo - usar la primera consulta/procedimiento para el mapa */}
+            {/* Mapa interactivo */}
             <div className="w-full max-w-3xl mx-auto mt-8">
               <InteractiveMap
                 consultorio={((doctorSchedules[selectedDay] || [])
