@@ -220,7 +220,7 @@ export default function SpecialtiesPage() {
                             {specialty.descripcion || 'Especialidad sin nombre'}
                           </CardTitle>
                           {specialty.piso && (
-                            <p className="specialties-card-location text-sm text-[#7F0C43] mt-1 opacity-80" style={{ fontFamily: "Arial, sans-serif" }}>
+                            <p className="specialties-card-title" style={{ fontFamily: "Arial, sans-serif" }}>
                               {specialty.piso}
                             </p>
                           )}
