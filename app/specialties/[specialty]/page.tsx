@@ -188,7 +188,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
     return (
       <DirectorioLayout>
         <div style={{ paddingTop: '50px' }}>
-          <h1 className="text-4xl font-bold text-primary mb-10 text-center">Doctores en {specialtyName || 'esta especialidad'}</h1>
+          <h1 className="text-4xl font-bold text-primary mb-10 text-center">DOCTORES EN{specialtyName || 'esta especialidad'}</h1>
           <p className="text-2xl text-accent2 col-span-full text-center">
             No se encontraron doctores para esta especialidad.
           </p>
@@ -200,7 +200,7 @@ export default function DoctorsPage({ params }: DoctorsPageProps) {
   return (
     <DirectorioLayout>
       <div style={{ paddingTop: '200px' }}>
-        <h1 className="text-4xl font-bold text-primary mb-10 text-center">Doctores en {specialtyName}</h1>
+        <h1 className="text-4xl font-bold text-primary mb-10 text-center">DOCTORES EN {specialtyName}</h1>
         
         {/* Mostrar todos los doctores sin filtro */}
         <div className="w-full flex justify-center">

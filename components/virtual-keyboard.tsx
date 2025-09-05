@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { XIcon, MoveIcon, ChevronsDownIcon, EraserIcon, LockIcon, Trash2Icon } from 'lucide-react'
+import { XIcon, MoveIcon, ChevronsDownIcon, ChevronsUpIcon, EraserIcon, LockIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import Keyboard from "react-simple-keyboard"
 import type { KeyboardLayoutObject } from "react-simple-keyboard"
@@ -19,9 +19,19 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
     const timer = setTimeout(() => {
       if (keyboardRef.current) {
         keyboardRef.current.classList.add('show')
-        // Posicionar un poco más abajo para no tapar el buscador
+        // Posicionar más arriba para búsqueda - optimizado para no tapar el input de búsqueda
         const rect = keyboardRef.current.getBoundingClientRect()
-        const tentativeTop = (window.innerHeight - rect.height) * 0.65
+        
+        // Detectar si estamos en la página de búsqueda de doctores
+        const isSearchPage = window.location.pathname.includes('/doctors/search')
+        
+        // Ajustar la posición según el contexto
+        let positionMultiplier = 0.45 // Posición por defecto más arriba
+        if (isSearchPage) {
+          positionMultiplier = 0.35 // Aún más arriba para búsqueda
+        }
+        
+        const tentativeTop = (window.innerHeight - rect.height) * positionMultiplier
         const top = Math.min(Math.max(20, tentativeTop), window.innerHeight - rect.height - 20)
         const left = Math.max(20, (window.innerWidth - rect.width) / 2)
         setPosition({ top, left })
@@ -153,6 +163,16 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
           <Button 
             variant="ghost" 
             size="icon" 
+            className="virtual-keyboard-nudge-up-btn" 
+            onClick={() => setPosition((pos) => pos ? { ...pos, top: Math.max(20, pos.top - 60) } : pos)} 
+            aria-label="Subir teclado"
+            style={{ backgroundColor: '#8C3048', color: 'white' }}
+          >
+            <ChevronsUpIcon className="w-5 h-5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
             className="virtual-keyboard-nudge-btn" 
             onClick={() => setPosition((pos) => pos ? { ...pos, top: Math.min(pos.top + 60, window.innerHeight - (keyboardRef.current?.getBoundingClientRect().height || 0) - 20) } : pos)} 
             aria-label="Bajar teclado"
@@ -248,6 +268,7 @@ export function VirtualKeyboard({ value, onChange, onClose, placeholder, onEnter
         
         .virtual-keyboard-drag-btn, 
         .virtual-keyboard-nudge-btn, 
+        .virtual-keyboard-nudge-up-btn,
         .virtual-keyboard-clear-btn,
         .virtual-keyboard-close-btn {
           border-radius: 50%;

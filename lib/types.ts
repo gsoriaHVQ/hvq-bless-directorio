@@ -58,6 +58,7 @@ export interface Especialidad {
   descripcion: string | null
   tipo: string | null
   icono: string | null
+  piso?: string | null // Nuevo campo que trae la API externa
 }
 
 // Tipos para consultorios

@@ -14,19 +14,17 @@ import { getAccessToken } from "../../lib/auth"
 import { Spinner } from "@/components/ui/spinner"
 import { config } from "@/lib/config"
 import type { Especialidad } from "@/lib/types"
-import { apiService } from "@/lib/api-service"
-
-interface EspecialidadConUbicacion extends Especialidad {
-  ubicacion?: string
-}
+// import { apiService } from "@/lib/api-service" // Ya no necesario para obtener ubicaciones
 
 export default function SpecialtiesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
-  const [specialties, setSpecialties] = useState<EspecialidadConUbicacion[]>([])
+  const [specialties, setSpecialties] = useState<Especialidad[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // FUNCIÓN COMENTADA: Ya no necesaria porque la API externa ahora trae el piso directamente
+  /*
   // Función para obtener la ubicación más común de una especialidad
   const getEspecialidadLocation = async (especialidadId: number): Promise<string> => {
     try {
@@ -82,12 +80,13 @@ export default function SpecialtiesPage() {
       return 'Sin agendas'
     }
   }
+  */
 
   useEffect(() => {
     const fetchSpecialties = async () => {
       try {
-        // Cacheado simple en sessionStorage
-        const cacheKey = 'specialties_agenda_cache_v1'
+        // Cacheado simple en sessionStorage (v5: piso viene directo de API externa)
+        const cacheKey = 'specialties_agenda_cache_v5'
         const cached = typeof window !== 'undefined' ? sessionStorage.getItem(cacheKey) : null
         if (cached) {
           const parsed = JSON.parse(cached)
@@ -106,47 +105,12 @@ export default function SpecialtiesPage() {
           timeout: config.api.timeout
         })
 
-        // Traer TODAS las especialidades válidas, ordenadas alfabéticamente
-        const fullList = (response.data as Especialidad[])
+        // Traer TODAS las especialidades válidas (ahora ya incluyen el piso), ordenadas alfabéticamente
+        const finalList = (response.data as Especialidad[])
           .filter((esp: Especialidad) => Boolean(esp.descripcion))
           .sort((a: Especialidad, b: Especialidad) => (a.descripcion || '').localeCompare(b.descripcion || ''))
         
-        // Obtener ubicaciones para TODAS las especialidades (procesamiento en lotes)
-        const BATCH_SIZE = 5 // Procesar 5 especialidades a la vez
-        const finalList: EspecialidadConUbicacion[] = []
-
-        for (let i = 0; i < fullList.length; i += BATCH_SIZE) {
-          const batch = fullList.slice(i, i + BATCH_SIZE)
-          
-          const batchResults = await Promise.allSettled(
-            batch.map(async (specialty) => {
-              const ubicacion = await getEspecialidadLocation(specialty.especialidadId)
-              return {
-                ...specialty,
-                ubicacion
-              }
-            })
-          )
-
-          // Procesar resultados del lote
-          batchResults.forEach((result, batchIndex) => {
-            if (result.status === 'fulfilled') {
-              finalList.push(result.value)
-            } else {
-              // Si falló la obtención de ubicación, usar la especialidad original
-              finalList.push({
-                ...batch[batchIndex],
-                ubicacion: 'Sin agendas'
-              })
-            }
-          })
-
-          // Pequeña pausa entre lotes para no sobrecargar el servidor
-          if (i + BATCH_SIZE < fullList.length) {
-            await new Promise(resolve => setTimeout(resolve, 100))
-          }
-        }
-        
+        // ¡Ya no necesitamos consultas adicionales! El piso viene directamente de la API externa
         setSpecialties(finalList)
         if (typeof window !== 'undefined') {
           sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: finalList }))
@@ -255,9 +219,9 @@ export default function SpecialtiesPage() {
                           <CardTitle className="specialties-card-title">
                             {specialty.descripcion || 'Especialidad sin nombre'}
                           </CardTitle>
-                          {specialty.ubicacion && (
-                            <p className="specialties-card-location text-sm text-[#7F0C43] mt-1 opacity-80" style={{ fontFamily: "Arial, sans-serif" }}>
-                              {specialty.ubicacion}
+                          {specialty.piso && (
+                            <p className="specialties-card-title" style={{ fontFamily: "Arial, sans-serif" , fontSize: '1rem',}}>
+                              {specialty.piso}
                             </p>
                           )}
                         </CardContent>
