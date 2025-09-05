@@ -74,8 +74,8 @@ Para producción, crear un archivo `.env.production` con las URLs y credenciales
 
 ```env
 
-NEXT_PUBLIC_API_URL=https://api.hospital-vozandes.com
-NEXT_PUBLIC_AUTH_URL=https://auth.hospital-vozandes.com/api3/v1
+NEXT_PUBLIC_API_URL= api url 
+NEXT_PUBLIC_AUTH_URL= api url
 
 # Credenciales de producción (reemplazar con credenciales reales)
 NEXT_PUBLIC_AUTH_USERNAME=usuario_produccion
