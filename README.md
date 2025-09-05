@@ -54,40 +54,39 @@ Crear un archivo `.env.local` con las siguientes variables:
 
 ```env
 # Configuración de la API
-NEXT_PUBLIC_API_URL=http://10.129.180.151:3001
-NEXT_PUBLIC_AUTH_URL=http://10.129.180.161:36560/api3/v1
+NEXT_PUBLIC_API_URL= api
+NEXT_PUBLIC_AUTH_URL=api
 
 # Credenciales de autenticación
-NEXT_PUBLIC_AUTH_USERNAME=middleware_dev
-NEXT_PUBLIC_AUTH_PASSWORD=DevMH@2025!
+NEXT_PUBLIC_AUTH_USERNAME=user
+NEXT_PUBLIC_AUTH_PASSWORD= password
 
 # URLs de imágenes (opcionales)
-NEXT_PUBLIC_LOGO_URL=http://horizon-html:35480/public/img_directorio/logo.svg
-NEXT_PUBLIC_APLICATIVO_LOGO_URL=http://horizon-html:35480/public/img_directorio/aplicativo_logo.svg
-NEXT_PUBLIC_HOMELINE_URL=http://horizon-html:35480/public/img_directorio/homeline.png
-NEXT_PUBLIC_BANNER_URL=http://horizon-html:35480/public/img_directorio/banner.png
-NEXT_PUBLIC_HVQ_LOGO_URL=/images/hvq_2025_1.png
+NEXT_PUBLIC_LOGO_URL=logo
+NEXT_PUBLIC_APLICATIVO_LOGO_URL=  logo app
+NEXT_PUBLIC_HOMELINE_URL=
+NEXT_PUBLIC_BANNER_URL=banners
+NEXT_PUBLIC_HVQ_LOGO_URL=
 ```
 
 ### Variables de Entorno para Producción
-
-**⚠️ IMPORTANTE**: Para producción, crear un archivo `.env.production` con las URLs y credenciales reales:
+Para producción, crear un archivo `.env.production` con las URLs y credenciales reales:
 
 ```env
-# URLs de producción (reemplazar con las URLs reales)
-NEXT_PUBLIC_API_URL=https://api.hospital-vozandes.com
-NEXT_PUBLIC_AUTH_URL=https://auth.hospital-vozandes.com/api3/v1
+
+NEXT_PUBLIC_API_URL= api url 
+NEXT_PUBLIC_AUTH_URL= api url
 
 # Credenciales de producción (reemplazar con credenciales reales)
 NEXT_PUBLIC_AUTH_USERNAME=usuario_produccion
 NEXT_PUBLIC_AUTH_PASSWORD=password_seguro_produccion
 
 # URLs de imágenes de producción
-NEXT_PUBLIC_LOGO_URL=https://cdn.hospital-vozandes.com/img_directorio/logo.svg
-NEXT_PUBLIC_APLICATIVO_LOGO_URL=https://cdn.hospital-vozandes.com/img_directorio/aplicativo_logo.svg
-NEXT_PUBLIC_HOMELINE_URL=https://cdn.hospital-vozandes.com/img_directorio/homeline.png
-NEXT_PUBLIC_BANNER_URL=https://cdn.hospital-vozandes.com/img_directorio/banner.png
-NEXT_PUBLIC_HVQ_LOGO_URL=/images/hvq_2025_1.png
+NEXT_PUBLIC_LOGO_URL=logo
+NEXT_PUBLIC_APLICATIVO_LOGO_URL=  logo app
+NEXT_PUBLIC_HOMELINE_URL=
+NEXT_PUBLIC_BANNER_URL=banners
+NEXT_PUBLIC_HVQ_LOGO_URL=
 ```
 
 ### Instalación
